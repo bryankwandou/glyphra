@@ -23,8 +23,25 @@ const DEFAULT_PASSWORD = 'nayrbryanGaming';
 const COOKIE = 'glyphra_session';
 const MAX_AGE_SECONDS = 60 * 60 * 8;
 
+/**
+ * Read an environment value, discarding surrounding whitespace and any
+ * byte-order mark.
+ *
+ * This is not defensive padding for its own sake. Piping a value into
+ * `vercel env add` appends a newline, and a credential of "name\n" fails to
+ * match "name" with no visible difference anywhere — the deployment simply
+ * rejects the correct password. That exact failure cost a debugging cycle here.
+ * Anything arriving from an environment is treated as untrimmed.
+ */
+function env(name: string): string | undefined {
+  const raw = process.env[name];
+  if (raw === undefined) return undefined;
+  const cleaned = raw.replace(/^﻿/, '').trim();
+  return cleaned === '' ? undefined : cleaned;
+}
+
 function secretKey(): Uint8Array {
-  const raw = process.env.GLYPHRA_SECRET ?? 'glyphra-development-fallback';
+  const raw = env('GLYPHRA_SECRET') ?? 'glyphra-development-fallback';
   return createHash('sha256').update(`${raw}:session`).digest();
 }
 
@@ -36,12 +53,13 @@ function matches(supplied: string, expected: string): boolean {
 }
 
 export function checkCredentials(username: string, password: string): boolean {
-  const user = process.env.GLYPHRA_ADMIN_USER ?? DEFAULT_USER;
-  const pass = process.env.GLYPHRA_ADMIN_PASSWORD ?? DEFAULT_PASSWORD;
+  const user = env('GLYPHRA_ADMIN_USER') ?? DEFAULT_USER;
+  const pass = env('GLYPHRA_ADMIN_PASSWORD') ?? DEFAULT_PASSWORD;
   // Both comparisons always run, so failure timing does not reveal which half
-  // was wrong.
-  const userOk = matches(username, user);
-  const passOk = matches(password, pass);
+  // was wrong. The submitted values are trimmed too — a password manager or a
+  // mobile keyboard adding a trailing space should not read as a wrong password.
+  const userOk = matches(username.trim(), user);
+  const passOk = matches(password.trim(), pass);
   return userOk && passOk;
 }
 
