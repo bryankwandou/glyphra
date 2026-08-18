@@ -1,26 +1,250 @@
 @import "tailwindcss";
 
+/*
+  Glyphra design tokens.
+
+  The product is a technical instrument, so the surface stays quiet and lets the
+  ciphertext carry the visual weight. Dark is the primary treatment — this is
+  read in labs and at night — with a light theme that keeps the same hierarchy
+  rather than merely inverting it.
+*/
+
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --bg:            #FBFCFD;
+  --bg-raised:     #FFFFFF;
+  --bg-sunken:     #F1F4F8;
+  --border:        #E2E8F0;
+  --border-strong: #CBD5E1;
+
+  --text:          #0F172A;
+  --text-muted:    #475569;
+  --text-faint:    #94A3B8;
+
+  --accent:        #4F46E5;
+  --accent-hover:  #4338CA;
+  --accent-soft:   #EEF2FF;
+  --accent-text:   #FFFFFF;
+
+  --cipher:        #0891B2;
+  --plain:         #0F172A;
+
+  --ok:            #047857;
+  --ok-soft:       #ECFDF5;
+  --warn:          #B45309;
+  --warn-soft:     #FFFBEB;
+  --bad:           #BE123C;
+  --bad-soft:      #FFF1F2;
+
+  --shadow-sm: 0 1px 2px rgb(15 23 42 / 0.06);
+  --shadow-md: 0 4px 16px -4px rgb(15 23 42 / 0.10), 0 1px 3px rgb(15 23 42 / 0.05);
+  --shadow-lg: 0 24px 48px -16px rgb(15 23 42 / 0.16);
+}
+
+:root[data-theme="dark"],
+:root:not([data-theme="light"]) {
+  @media (prefers-color-scheme: dark) {
+    --bg:            #080B14;
+    --bg-raised:     #0F1524;
+    --bg-sunken:     #060810;
+    --border:        #1E2639;
+    --border-strong: #2D3A52;
+
+    --text:          #E8EDF5;
+    --text-muted:    #94A3B8;
+    --text-faint:    #55637C;
+
+    --accent:        #6366F1;
+    --accent-hover:  #818CF8;
+    --accent-soft:   #171B36;
+    --accent-text:   #FFFFFF;
+
+    --cipher:        #22D3EE;
+    --plain:         #E8EDF5;
+
+    --ok:            #34D399;
+    --ok-soft:       #082F26;
+    --warn:          #FBBF24;
+    --warn-soft:     #2A1F05;
+    --bad:           #FB7185;
+    --bad-soft:      #300A16;
+
+    --shadow-sm: 0 1px 2px rgb(0 0 0 / 0.4);
+    --shadow-md: 0 4px 16px -4px rgb(0 0 0 / 0.5);
+    --shadow-lg: 0 24px 48px -16px rgb(0 0 0 / 0.7);
+  }
+}
+
+:root[data-theme="dark"] {
+  --bg:            #080B14;
+  --bg-raised:     #0F1524;
+  --bg-sunken:     #060810;
+  --border:        #1E2639;
+  --border-strong: #2D3A52;
+
+  --text:          #E8EDF5;
+  --text-muted:    #94A3B8;
+  --text-faint:    #55637C;
+
+  --accent:        #6366F1;
+  --accent-hover:  #818CF8;
+  --accent-soft:   #171B36;
+  --accent-text:   #FFFFFF;
+
+  --cipher:        #22D3EE;
+  --plain:         #E8EDF5;
+
+  --ok:            #34D399;
+  --ok-soft:       #082F26;
+  --warn:          #FBBF24;
+  --warn-soft:     #2A1F05;
+  --bad:           #FB7185;
+  --bad-soft:      #300A16;
+
+  --shadow-sm: 0 1px 2px rgb(0 0 0 / 0.4);
+  --shadow-md: 0 4px 16px -4px rgb(0 0 0 / 0.5);
+  --shadow-lg: 0 24px 48px -16px rgb(0 0 0 / 0.7);
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-bg:            var(--bg);
+  --color-bg-raised:     var(--bg-raised);
+  --color-bg-sunken:     var(--bg-sunken);
+  --color-border-subtle: var(--border);
+  --color-border-strong: var(--border-strong);
+
+  --color-text:       var(--text);
+  --color-text-muted: var(--text-muted);
+  --color-text-faint: var(--text-faint);
+
+  --color-accent:      var(--accent);
+  --color-accent-hover:var(--accent-hover);
+  --color-accent-soft: var(--accent-soft);
+  --color-accent-text: var(--accent-text);
+
+  --color-cipher: var(--cipher);
+  --color-plain:  var(--plain);
+
+  --color-ok:       var(--ok);
+  --color-ok-soft:  var(--ok-soft);
+  --color-warn:     var(--warn);
+  --color-warn-soft:var(--warn-soft);
+  --color-bad:      var(--bad);
+  --color-bad-soft: var(--bad-soft);
+
+  --font-sans: var(--font-sans-stack);
+  --font-mono: var(--font-mono-stack);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+* {
+  border-color: var(--border);
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
   }
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-sans-stack);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+/*
+  Ciphertext is the primary artefact on every page, so it gets a dedicated
+  treatment: monospace, widened tracking so repeated letters are countable by
+  eye, and word-break so a long block never forces the page sideways.
+*/
+.cipher-text {
+  font-family: var(--font-mono-stack);
+  letter-spacing: 0.14em;
+  word-break: break-word;
+  overflow-wrap: anywhere;
+  font-variant-ligatures: none;
+  font-variant-numeric: tabular-nums;
+}
+
+.plain-text {
+  font-family: var(--font-mono-stack);
+  letter-spacing: 0.08em;
+  word-break: break-word;
+  overflow-wrap: anywhere;
+}
+
+/* Worked-solution artefacts: squares, grids, matrices. Alignment is the point. */
+.artefact {
+  font-family: var(--font-mono-stack);
+  white-space: pre;
+  overflow-x: auto;
+  font-variant-numeric: tabular-nums;
+  font-variant-ligatures: none;
+  line-height: 1.55;
+  tab-size: 4;
+}
+
+::selection {
+  background: var(--accent);
+  color: var(--accent-text);
+}
+
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* Thin scrollbars inside panels, so a scrolling artefact does not shout. */
+.slim-scroll::-webkit-scrollbar { height: 8px; width: 8px; }
+.slim-scroll::-webkit-scrollbar-track { background: transparent; }
+.slim-scroll::-webkit-scrollbar-thumb {
+  background: var(--border-strong);
+  border-radius: 999px;
+}
+
+@keyframes rise {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: none; }
+}
+
+@keyframes sweep {
+  from { background-position: 200% 0; }
+  to   { background-position: -200% 0; }
+}
+
+@keyframes pulse-ring {
+  0%   { box-shadow: 0 0 0 0 color-mix(in oklab, var(--accent) 45%, transparent); }
+  70%  { box-shadow: 0 0 0 12px transparent; }
+  100% { box-shadow: 0 0 0 0 transparent; }
+}
+
+.rise { animation: rise 0.5s cubic-bezier(0.16, 1, 0.3, 1) both; }
+
+/* A moving sheen behind the hero ciphertext, marking it as live output. */
+.sheen {
+  background-image: linear-gradient(
+    100deg,
+    transparent 20%,
+    color-mix(in oklab, var(--cipher) 22%, transparent) 45%,
+    transparent 70%
+  );
+  background-size: 200% 100%;
+  animation: sweep 4.5s linear infinite;
+}
+
+.grid-backdrop {
+  background-image:
+    linear-gradient(to right, color-mix(in oklab, var(--border) 60%, transparent) 1px, transparent 1px),
+    linear-gradient(to bottom, color-mix(in oklab, var(--border) 60%, transparent) 1px, transparent 1px);
+  background-size: 56px 56px;
+  mask-image: radial-gradient(ellipse 80% 60% at 50% 0%, #000 40%, transparent 100%);
 }

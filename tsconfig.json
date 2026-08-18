@@ -1,6 +1,9 @@
 {
   "compilerOptions": {
-    "target": "ES2017",
+    // ES2020 for BigInt literals. Base58, Base36, Base62, RSA and ElGamal all
+    // work on integers far past Number.MAX_SAFE_INTEGER, so BigInt is not
+    // optional here.
+    "target": "ES2020",
     "lib": ["dom", "dom.iterable", "esnext"],
     "allowJs": true,
     "skipLibCheck": true,
