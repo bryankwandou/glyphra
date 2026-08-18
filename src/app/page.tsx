@@ -155,6 +155,66 @@ Round trips attempted: ${REVERSIBLE.length * 12}
         </div>
       </section>
 
+      {/* ---------------------------------------------------------- assessment */}
+      <section className="border-b border-border-subtle">
+        <div className="mx-auto grid max-w-6xl gap-10 px-5 py-16 lg:grid-cols-[1fr_1.1fr] lg:items-center">
+          <div>
+            <p className="text-xs font-medium uppercase tracking-[0.16em] text-accent">
+              For whoever marks the work
+            </p>
+            <h2 className="mt-3 text-2xl font-semibold tracking-[-0.02em] sm:text-3xl">
+              Thirty students, thirty different papers, one key
+            </h2>
+            <p className="mt-4 leading-relaxed text-text-muted">
+              Set a cohort size and a difficulty band. You get a separate paper for every student
+              over the same techniques, plus a single marking key that covers all of them. Copying a
+              neighbour stops helping, and the marks stay comparable.
+            </p>
+            <p className="mt-4 leading-relaxed text-text-muted">
+              Every paper carries an identical difficulty composition, so nobody draws an easier
+              sheet than the person beside them. Nothing is stored: a paper is a function of its
+              seed, and the seed is printed on it, so a sheet lost in March can be rebuilt in August.
+            </p>
+            <Link
+              href="/assess"
+              className="mt-6 inline-block rounded-xl border border-border-strong bg-bg-raised px-5 py-2.5 text-sm font-medium transition-colors hover:border-accent"
+            >
+              Build a set of papers
+            </Link>
+          </div>
+
+          <div className="rounded-2xl border border-border-subtle bg-bg-raised p-5 shadow-[var(--shadow-md)]">
+            <div className="flex items-center justify-between border-b border-border-subtle pb-3">
+              <span className="text-xs uppercase tracking-[0.14em] text-text-faint">
+                Kriptografi &mdash; UTS
+              </span>
+              <span className="font-mono text-xs text-text-faint">seed FIXED-A</span>
+            </div>
+            <ul className="mt-4 space-y-2.5">
+              {[
+                ['VNYB-01', 'ROT18', 'Simple substitution', 'Bifid'],
+                ['RSSK-02', 'Quoted-printable', 'Variant Beaufort', 'Quagmire II'],
+                ['KTWU-03', 'Keyword substitution', 'Simple substitution', 'Double columnar'],
+                ['NYCN-04', 'Tap code', 'Uuencode', 'RC4'],
+              ].map(([code, ...items]) => (
+                <li
+                  key={code}
+                  className="flex flex-wrap items-baseline gap-x-2 gap-y-1 rounded-lg bg-bg-sunken px-3 py-2"
+                >
+                  <span className="font-mono text-xs text-accent">{code}</span>
+                  <span className="text-xs text-text-muted">{items.join(' · ')}</span>
+                </li>
+              ))}
+            </ul>
+            <p className="mt-4 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-text-faint">
+              <span>difficulty 2, 3, 4 on every sheet</span>
+              <span aria-hidden>·</span>
+              <span className="text-ok">no technique repeats within a paper</span>
+            </p>
+          </div>
+        </div>
+      </section>
+
       {/* ------------------------------------------------------------ families */}
       <section className="border-b border-border-subtle">
         <div className="mx-auto max-w-6xl px-5 py-16">

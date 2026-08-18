@@ -50,6 +50,45 @@ The first time it ran it rejected six techniques:
 All six are fixed. Current state: **94 of 94 reversible techniques round-trip exactly**, across 1,128
 round trips per run.
 
+## Assessment papers
+
+The practice range is the free half. The half a department cannot get elsewhere is at `/assess`,
+behind the instructor sign-in.
+
+Set a title, a cohort size and a difficulty band, and it produces one paper per student over the
+same techniques at the same difficulty, plus a single marking key that covers the lot. Copying a
+neighbour does not help; the marks stay comparable.
+
+Two fairness properties, both asserted against a running build:
+
+- **No technique repeats within a paper.** Four Caesar problems would be a worse test than four
+  different ciphers.
+- **Every paper carries an identical difficulty composition.** An early run gave one student XOR,
+  XOR and quoted-printable while another got Polybius, affine and Playfair. Both satisfied
+  "difficulty 2 to 3" and they are plainly not equivalent as a test. Each question slot now fixes
+  its difficulty across all papers, so only the techniques vary.
+
+Nothing is stored. A paper is a pure function of the master seed and the paper number, so a sheet
+lost in March can be rebuilt in August from the seed printed on it. No database to back up, no
+export to misplace.
+
+Print is a first-class output rather than an afterthought: one sheet per page, no interface
+furniture, ciphertext forced to black on white so a tired departmental printer does not render it as
+unreadable grey.
+
+## Promotional film
+
+A Remotion project lives in `video/`. Every ciphertext on screen came out of the engine and was
+confirmed to round-trip before it was used — an early draft of the pitch deck contained a Vigenère
+output typed from memory, and it was wrong.
+
+```bash
+npx remotion studio video/src/index.ts        # preview
+npx remotion render video/src/index.ts Promo out/glyphra-promo.mp4
+```
+
+Two compositions: `Promo` at 1920x1080 and `PromoSquare` at 1080x1080, sharing one timeline.
+
 ## Catalogue
 
 | Family | Count |
@@ -78,6 +117,7 @@ browser holds an opaque blob it cannot open.
   coarse proximity figure. Never returns the expected text, so it cannot be used as an oracle
 - `POST /api/solution` — the only route that returns a solution. Gated on a verified session
 - `POST /api/credential` — re-marks the answer, then anchors an attestation on Solana devnet
+- `POST /api/assessment` — builds a full set of papers with their keys. Instructor-gated in full
 
 The GCM authentication tag also means a student cannot edit a sealed answer and resubmit it.
 
@@ -105,6 +145,16 @@ than the block timestamp, signed by the issuer, unaltered since.
 
 What it does not establish: that the holder worked unaided, any general competence, or anything
 about who they are.
+
+A credential issued by the live deployment, confirmed by an independent RPC call rather than by this
+application's own response:
+
+| | |
+|---|---|
+| Network | Solana devnet, slot 484982927 |
+| Program | `spl-memo` |
+| Memo | `{"p":"glyphra","v":1,"t":"atbash","d":1,...}` |
+| Signature | `Q1g1d3xDnpfWhQa7qzgzuFvi4rWzq3grnwbPNuuugoEo1sfz5YjAVtQWPLSoCNGsknDtZcw8HMjquQyVBPWVg1Y` |
 
 ## Running it
 
@@ -148,6 +198,9 @@ npm run check-solana
   exactly what you must never ship.
 - **Devnet is periodically reset.** Credentials demonstrate the mechanism; they are not a permanent
   transcript.
+- **Assessment has no gradebook.** It produces papers and a key; recording who scored what is still
+  a spreadsheet. That is the next thing worth building, and it is the thing an institution would
+  actually pay for.
 - **Nothing here should protect anything that matters.** It is teaching material. The modern
   primitives are correct implementations, but a hand-rolled AES in application JavaScript has
   side-channel properties no reviewed library would accept.

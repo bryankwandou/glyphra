@@ -9,7 +9,10 @@
     "// build": "Verification runs first, so a technique that stopped round-tripping stops the deploy rather than reaching a student.",
     "build": "npm run verify && next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "video": "remotion render video/src/index.ts Promo out/glyphra-promo.mp4",
+    "video:square": "remotion render video/src/index.ts PromoSquare out/glyphra-promo-square.mp4",
+    "video:studio": "remotion studio video/src/index.ts"
   },
   "dependencies": {
     "@solana/web3.js": "^1.98.4",
@@ -26,12 +29,15 @@
     "zod": "^4.4.3"
   },
   "devDependencies": {
+    "@remotion/cli": "^4.0.512",
+    "@remotion/player": "^4.0.512",
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "eslint": "^9",
     "eslint-config-next": "16.3.0",
+    "remotion": "^4.0.512",
     "tailwindcss": "^4",
     "tsx": "^4.23.11",
     "typescript": "^5"
