@@ -59,14 +59,40 @@ Set a title, a cohort size and a difficulty band, and it produces one paper per 
 same techniques at the same difficulty, plus a single marking key that covers the lot. Copying a
 neighbour does not help; the marks stay comparable.
 
-Two fairness properties, both asserted against a running build:
+Nine invariants run on every build, over five different cohort shapes:
 
-- **No technique repeats within a paper.** Four Caesar problems would be a worse test than four
-  different ciphers.
-- **Every paper carries an identical difficulty composition.** An early run gave one student XOR,
-  XOR and quoted-printable while another got Polybius, affine and Playfair. Both satisfied
-  "difficulty 2 to 3" and they are plainly not equivalent as a test. Each question slot now fixes
-  its difficulty across all papers, so only the techniques vary.
+```
+npm run verify:assessment
+```
+
+| Property | Why it matters |
+|---|---|
+| Every paper fully populated | A short paper under-tests one student while the rest sit the full set |
+| No technique repeats within a paper | Four Caesar problems is a worse test than four different ciphers |
+| Identical difficulty composition across papers | Otherwise two students are marked on the same scale for different work |
+| All papers distinct | The entire point is that copying a neighbour does not help |
+| The same seed reproduces the same set | This is what replaces a database |
+| A different seed produces a different set | Reproducibility is worthless if every cohort gets the same papers |
+| Every question carries a key and worked solution | A paper without one is the hand-marking problem this replaces |
+| Ciphertext never equals the plaintext | A degenerate technique hands over the answer |
+| Paper codes unique within a set | The code is how a sheet is identified when handed back |
+
+That check failed on its first run too, and both failures were real:
+
+- **Two techniques handed the student the answer.** ROT5 rotates digits and leaves letters alone,
+  and every exercise message here is letters — so its "ciphertext" was the plaintext verbatim.
+  Quoted-printable only escapes characters outside printable ASCII, so English passes through
+  untouched. Both remain in the catalogue, because a student should learn that an encoding is not a
+  cipher. Neither can be drawn as a problem now, and every generated problem is checked for the same
+  failure regardless, since block rotation is degenerate only for certain block sizes.
+- **With no difficulty band requested, every paper drew its own profile.** Six papers came out with
+  six different compositions — one student sat 1,5,4,4 and another 2,2,1,4, marked on the same
+  scale. "No preference" means the instructor did not mind which difficulties appear, not that
+  students should face different ones. An unconstrained run now builds a ramp from the seed and
+  applies it to every paper.
+
+The cipher harness had already flagged quoted-printable as a warning, and it was left as a warning.
+That was the mistake: a warning nobody acts on is the same as no check at all.
 
 Nothing is stored. A paper is a pure function of the master seed and the paper number, so a sheet
 lost in March can be rebuilt in August from the seed printed on it. No database to back up, no
