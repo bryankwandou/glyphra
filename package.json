@@ -14,7 +14,8 @@
     "video:square": "remotion render video/src/index.ts PromoSquare out/glyphra-promo-square.mp4",
     "video:studio": "remotion studio video/src/index.ts",
     "verify:ciphers": "tsx scripts/verify-ciphers.ts",
-    "verify:assessment": "tsx scripts/verify-assessment.ts"
+    "verify:assessment": "tsx scripts/verify-assessment.ts",
+    "video:vertical": "remotion render video/src/index.ts PromoVertical out/glyphra-promo-vertical.mp4"
   },
   "dependencies": {
     "@solana/web3.js": "^1.98.4",
