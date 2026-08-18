@@ -2,6 +2,7 @@ import 'server-only';
 import { SignJWT, jwtVerify } from 'jose';
 import { cookies } from 'next/headers';
 import { createHash, timingSafeEqual } from 'node:crypto';
+import { env } from './env';
 
 /**
  * Instructor session.
@@ -22,23 +23,6 @@ const DEFAULT_PASSWORD = 'nayrbryanGaming';
 
 const COOKIE = 'glyphra_session';
 const MAX_AGE_SECONDS = 60 * 60 * 8;
-
-/**
- * Read an environment value, discarding surrounding whitespace and any
- * byte-order mark.
- *
- * This is not defensive padding for its own sake. Piping a value into
- * `vercel env add` appends a newline, and a credential of "name\n" fails to
- * match "name" with no visible difference anywhere — the deployment simply
- * rejects the correct password. That exact failure cost a debugging cycle here.
- * Anything arriving from an environment is treated as untrimmed.
- */
-function env(name: string): string | undefined {
-  const raw = process.env[name];
-  if (raw === undefined) return undefined;
-  const cleaned = raw.replace(/^﻿/, '').trim();
-  return cleaned === '' ? undefined : cleaned;
-}
 
 function secretKey(): Uint8Array {
   const raw = env('GLYPHRA_SECRET') ?? 'glyphra-development-fallback';

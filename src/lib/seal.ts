@@ -1,5 +1,6 @@
 import 'server-only';
 import { createCipheriv, createDecipheriv, randomBytes, createHash } from 'node:crypto';
+import { env } from './env';
 
 /**
  * Authenticated envelope for challenge answers.
@@ -25,7 +26,7 @@ function keyMaterial(): Buffer {
   // Trimmed for the same reason as in auth.ts: values piped into a deployment
   // CLI arrive with a trailing newline, and an invisible difference in key
   // material is a miserable thing to debug.
-  const secret = process.env.GLYPHRA_SECRET?.replace(/^﻿/, '').trim();
+  const secret = env('GLYPHRA_SECRET');
   if (!secret) {
     if (!warned && process.env.NODE_ENV === 'production') {
       console.warn(FALLBACK_WARNING);

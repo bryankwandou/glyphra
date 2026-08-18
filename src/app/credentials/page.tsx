@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { issuerAddress } from '@/lib/solana';
+import { env } from '@/lib/env';
 
 export const metadata: Metadata = {
   title: 'Credentials',
@@ -10,7 +11,7 @@ export const metadata: Metadata = {
 
 export default function CredentialsPage() {
   const issuer = issuerAddress();
-  const cluster = process.env.NEXT_PUBLIC_SOLANA_CLUSTER ?? 'devnet';
+  const cluster = env('NEXT_PUBLIC_SOLANA_CLUSTER') ?? 'devnet';
 
   return (
     <div className="mx-auto max-w-3xl px-5 py-12">

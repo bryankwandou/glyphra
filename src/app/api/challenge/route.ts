@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { generateChallenge } from '@/lib/generator';
 import { seal } from '@/lib/seal';
 import type { Difficulty, Family } from '@/lib/ciphers/types';
+import { env } from '@/lib/env';
 
 export const runtime = 'nodejs';
 
@@ -54,7 +55,7 @@ const SYSTEM_BRIEF =
   'numbers, no punctuation beyond a final full stop.';
 
 async function aiPlaintext(theme?: string): Promise<string | null> {
-  const apiKey = process.env.GROQ_API_KEY;
+  const apiKey = env('GROQ_API_KEY');
   if (!apiKey) return null;
 
   const subject = theme?.trim()
@@ -63,7 +64,7 @@ async function aiPlaintext(theme?: string): Promise<string | null> {
 
   // Keys pasted out of a text file often carry a byte-order mark, which becomes
   // an invisible character in the header and a 401 that is very hard to read.
-  const authorization = `Bearer ${apiKey.replace(/^﻿/, '').trim()}`;
+  const authorization = `Bearer ${apiKey}`;
 
   for (const model of MODELS) {
     try {

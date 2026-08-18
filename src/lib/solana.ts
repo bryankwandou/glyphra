@@ -4,6 +4,7 @@ import {
 } from '@solana/web3.js';
 import bs58 from 'bs58';
 import { createHash } from 'node:crypto';
+import { env } from './env';
 
 /**
  * On-chain proof that a specific problem was solved.
@@ -34,7 +35,7 @@ export interface Attestation {
 }
 
 function issuerKeypair(): Keypair | null {
-  const raw = process.env.SOLANA_ISSUER_SECRET?.trim();
+  const raw = env('SOLANA_ISSUER_SECRET');
   if (!raw) return null;
   try {
     // Accepts either a base58 64-byte secret key, or a 32-byte hex seed.
@@ -55,7 +56,7 @@ export function issuerAddress(): string | null {
 }
 
 export function connection(): Connection {
-  const url = process.env.SOLANA_RPC_URL || clusterApiUrl('devnet');
+  const url = env('SOLANA_RPC_URL') || clusterApiUrl('devnet');
   return new Connection(url, 'confirmed');
 }
 
@@ -95,7 +96,7 @@ export interface AnchorResult {
  * to maintain without making the record any more verifiable.
  */
 export async function anchorAttestation(att: Attestation): Promise<AnchorResult> {
-  const cluster = process.env.NEXT_PUBLIC_SOLANA_CLUSTER ?? 'devnet';
+  const cluster = env('NEXT_PUBLIC_SOLANA_CLUSTER') ?? 'devnet';
   const payer = issuerKeypair();
 
   if (!payer) {
