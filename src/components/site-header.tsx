@@ -36,12 +36,20 @@ export async function SiteHeader() {
             {CATALOGUE_SIZE} techniques
           </span>
           {session ? (
-            <Link
-              href="/instructor"
-              className="rounded-lg border border-border-strong bg-bg-raised px-3 py-1.5 text-sm font-medium text-text transition-colors hover:border-accent"
-            >
-              Instructor
-            </Link>
+            <>
+              <Link
+                href="/assess"
+                className="hidden rounded-lg px-3 py-1.5 text-sm text-text-muted transition-colors hover:text-text sm:inline"
+              >
+                Papers
+              </Link>
+              <Link
+                href="/instructor"
+                className="rounded-lg border border-border-strong bg-bg-raised px-3 py-1.5 text-sm font-medium text-text transition-colors hover:border-accent"
+              >
+                Instructor
+              </Link>
+            </>
           ) : (
             <Link
               href="/instructor"

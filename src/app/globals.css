@@ -241,6 +241,71 @@ body {
   animation: sweep 4.5s linear infinite;
 }
 
+/*
+  Print. Assessment papers are handed out on paper far more often than they are
+  read on screen, so this is a first-class output rather than an afterthought:
+  every sheet starts a new page, the interface furniture disappears, and the
+  ciphertext is forced to black on white so a tired departmental printer does
+  not render it as unreadable grey.
+*/
+@media print {
+  @page {
+    size: A4;
+    margin: 16mm 14mm;
+  }
+
+  header, footer, .no-print {
+    display: none !important;
+  }
+
+  html, body {
+    background: #fff !important;
+    color: #000 !important;
+  }
+
+  .print-root {
+    margin: 0 !important;
+  }
+
+  .paper-sheet,
+  .answer-sheet {
+    break-after: page;
+    page-break-after: always;
+    border: none !important;
+    background: #fff !important;
+    padding: 0 !important;
+    box-shadow: none !important;
+  }
+
+  .paper-sheet:last-child,
+  .answer-sheet:last-child {
+    break-after: auto;
+    page-break-after: auto;
+  }
+
+  /* Never split a single problem across two sheets. */
+  .paper-sheet li,
+  .answer-sheet li {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+
+  .cipher-text {
+    color: #000 !important;
+    background: #f4f4f4 !important;
+    border: 1px solid #ccc;
+    letter-spacing: 0.16em;
+  }
+
+  .plain-text, .artefact {
+    color: #000 !important;
+  }
+
+  a[href]::after {
+    content: '';
+  }
+}
+
 .grid-backdrop {
   background-image:
     linear-gradient(to right, color-mix(in oklab, var(--border) 60%, transparent) 1px, transparent 1px),

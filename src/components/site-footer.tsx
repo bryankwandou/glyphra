@@ -4,7 +4,7 @@ import { CATALOGUE_SIZE, REVERSIBLE } from '@/lib/ciphers';
 
 export function SiteFooter() {
   return (
-    <footer className="border-t border-border-subtle bg-bg-sunken">
+    <footer className="no-print border-t border-border-subtle bg-bg-sunken">
       <div className="mx-auto max-w-6xl px-5 py-10">
         <div className="flex flex-wrap items-start justify-between gap-8">
           <div className="max-w-sm">
