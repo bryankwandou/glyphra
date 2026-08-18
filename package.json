@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "verify": "tsx scripts/verify-ciphers.ts",
+    "verify": "npm run verify:ciphers && npm run verify:assessment",
     "check-solana": "tsx --env-file=.env.local scripts/check-solana.ts",
     "// build": "Verification runs first, so a technique that stopped round-tripping stops the deploy rather than reaching a student.",
     "build": "npm run verify && next build",
@@ -12,7 +12,9 @@
     "lint": "eslint",
     "video": "remotion render video/src/index.ts Promo out/glyphra-promo.mp4",
     "video:square": "remotion render video/src/index.ts PromoSquare out/glyphra-promo-square.mp4",
-    "video:studio": "remotion studio video/src/index.ts"
+    "video:studio": "remotion studio video/src/index.ts",
+    "verify:ciphers": "tsx scripts/verify-ciphers.ts",
+    "verify:assessment": "tsx scripts/verify-assessment.ts"
   },
   "dependencies": {
     "@solana/web3.js": "^1.98.4",

@@ -84,7 +84,11 @@ const DISCLOSE_KEY_FIELD: Record<string, string[]> = {
 };
 
 function pickTechnique(opts: GeneratorOptions, rng: Rng): Technique {
-  let pool = REVERSIBLE;
+  // The default pool excludes techniques that cannot make a real problem. An
+  // explicit request by id still honours the request — an instructor asking for
+  // quoted-printable by name presumably wants to demonstrate exactly that it
+  // does nothing.
+  let pool = REVERSIBLE.filter((t) => !NOT_AS_PROBLEMS.has(t.id));
   if (opts.techniqueIds?.length) {
     const wanted = new Set(opts.techniqueIds);
     pool = TECHNIQUES.filter((t) => wanted.has(t.id));
@@ -97,7 +101,9 @@ function pickTechnique(opts: GeneratorOptions, rng: Rng): Technique {
     const wanted = new Set(opts.difficulties);
     pool = pool.filter((t) => wanted.has(t.difficulty));
   }
-  if (!pool.length) pool = REVERSIBLE;
+  // Filters that exclude everything fall back to the whole usable pool rather
+  // than failing — a problem from outside the requested band beats no problem.
+  if (!pool.length) pool = REVERSIBLE.filter((t) => !NOT_AS_PROBLEMS.has(t.id));
   return rng.pick(pool);
 }
 
@@ -121,9 +127,48 @@ function buildPrompt(technique: Technique, disclosed: { label: string; value?: s
   return `Recover the plaintext from the ciphertext below. It was enciphered with ${technique.name}.${known}`;
 }
 
+/**
+ * Techniques that belong in the catalogue but must never become a problem,
+ * because against ordinary prose they do nothing at all.
+ *
+ * ROT5 rotates digits and leaves letters alone; every exercise message here is
+ * letters, so it hands the student the answer verbatim. Quoted-printable only
+ * escapes characters outside a printable ASCII range, so plain English passes
+ * through untouched. Both are worth teaching — a student should know that an
+ * encoding is not a cipher — and neither is worth setting as a question.
+ *
+ * A generated problem is checked against this failure mode regardless, since
+ * some techniques are degenerate only for particular keys. Block rotation with
+ * a block size that divides the message evenly is the example that turned up.
+ */
+const NOT_AS_PROBLEMS = new Set(['rot5', 'quoted-printable']);
+
+/** True when the "ciphertext" is just the plaintext wearing a hat. */
+function isDegenerate(ciphertext: string, plaintext: string): boolean {
+  const strip = (s: string) => s.replace(/\s+/g, '').toUpperCase();
+  return strip(ciphertext) === strip(plaintext);
+}
+
 export function generateChallenge(opts: GeneratorOptions = {}): GeneratedChallenge {
   const seed = opts.seed ?? Math.random().toString(36).slice(2, 12);
-  const rng = makeRng(seed);
+
+  // Attempts are ordered and the salt is derived from the attempt number, so
+  // the same seed still produces the same problem — retrying stays
+  // deterministic, which is what lets a lost paper be rebuilt from its seed.
+  for (let attempt = 0; attempt < 10; attempt++) {
+    const candidate = buildOne(opts, seed, attempt);
+    if (!isDegenerate(candidate.publicPart.ciphertext, candidate.solution.plaintext)) {
+      return candidate;
+    }
+  }
+  // Ten attempts all degenerate means the caller pinned a technique that cannot
+  // produce a real problem. Returning it is still better than throwing, and the
+  // verification script will have caught it long before a student does.
+  return buildOne(opts, seed, 0);
+}
+
+function buildOne(opts: GeneratorOptions, seed: string, attempt: number): GeneratedChallenge {
+  const rng = makeRng(attempt === 0 ? seed : `${seed}#${attempt}`);
   const technique = pickTechnique(opts, rng);
 
   const bank = VERBOSE.has(technique.id) ? SHORT : ALL_PLAINTEXTS;

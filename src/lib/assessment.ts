@@ -83,8 +83,31 @@ function paperCode(masterSeed: string, number: number): string {
  * Slot n takes difficulty n mod (number requested), so every paper carries the
  * same composition and only the specific techniques differ.
  */
-function difficultyPlan(requested: Difficulty[] | undefined, slots: number): (Difficulty[] | undefined)[] {
-  if (!requested?.length) return new Array(slots).fill(undefined);
+function difficultyPlan(
+  requested: Difficulty[] | undefined,
+  slots: number,
+  masterSeed: string,
+): Difficulty[][] {
+  /**
+   * With no band requested, a fixed composition still has to be chosen. Leaving
+   * each slot open looks harmless and is not: an unconstrained run produced six
+   * papers with six different difficulty profiles — one student sat 1,5,4,4 and
+   * another 2,2,1,4, marked on the same scale. "No preference" means the
+   * instructor did not care which difficulties appear, never that students
+   * should draw different ones from each other.
+   *
+   * So a ramp is built from the seed and then applied to every paper: the sheet
+   * opens gently and gets harder, which is also how a paper should read.
+   */
+  if (!requested?.length) {
+    const rng = makeRng(`plan:${masterSeed}`);
+    const start = rng.int(1, 2) as Difficulty;
+    return Array.from({ length: slots }, (_, i) => {
+      const step = Math.floor((i * 4) / Math.max(1, slots - 1));
+      return [Math.min(5, start + step) as Difficulty];
+    });
+  }
+
   const sorted = [...requested].sort((a, b) => a - b);
   return Array.from({ length: slots }, (_, i) => [sorted[i % sorted.length]]);
 }
@@ -93,7 +116,7 @@ export function buildAssessment(spec: AssessmentSpec): Assessment {
   const papers = Math.max(1, Math.min(spec.papers, LIMITS.maxPapers));
   const perPaper = Math.max(1, Math.min(spec.problemsPerPaper, LIMITS.maxProblemsPerPaper));
   const used = new Set<string>();
-  const plan = difficultyPlan(spec.difficulties, perPaper);
+  const plan = difficultyPlan(spec.difficulties, perPaper, spec.masterSeed);
 
   const built: Paper[] = [];
   for (let n = 1; n <= papers; n++) {
