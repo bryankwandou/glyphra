@@ -117,7 +117,15 @@ export function PracticeConsole({
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          techniqueIds: techniqueId ? [techniqueId] : undefined,
+          // Beginner mode draws from what an introductory syllabus actually
+          // opens with, checked against a real course: Caesar dominates, then
+          // simple substitution, Atbash, affine and the rail fence. Without
+          // this the mode was still free to serve a Quagmire.
+          techniqueIds: techniqueId
+            ? [techniqueId]
+            : beginner
+              ? ['caesar', 'atbash', 'rot13', 'affine', 'keyword', 'rail-fence', 'a1z26', 'simple-substitution']
+              : undefined,
           families: families.length ? families : undefined,
           difficulties: difficulties.length ? difficulties : undefined,
           seed: seed.trim() || undefined,
@@ -213,9 +221,9 @@ export function PracticeConsole({
    */
   const startBeginner = () => {
     setBeginner(true);
-    setDifficulties([1]);
+    setDifficulties([1, 2]);
     setFamilies([]);
-    setTechniqueId('caesar');
+    setTechniqueId('');
     setSource('machine');
     setOwnText('');
   };
