@@ -27,6 +27,7 @@ interface Challenge {
   prompt: string;
   ciphertext: string;
   keyFields: { label: string; disclosed: boolean; value?: string }[];
+  relaxed?: string[];
   plaintextLength: number;
   messageSource: 'ai' | 'machine';
   sealed: string;
@@ -83,6 +84,8 @@ export function PracticeConsole({
   const [families, setFamilies] = useState<Family[]>([]);
   const [techniqueId, setTechniqueId] = useState<string>('');
   const [source, setSource] = useState<'machine' | 'ai'>('machine');
+  const [beginner, setBeginner] = useState(false);
+  const [ownText, setOwnText] = useState('');
   const [theme, setTheme] = useState('');
   const [seed, setSeed] = useState('');
 
@@ -120,6 +123,8 @@ export function PracticeConsole({
           seed: seed.trim() || undefined,
           source,
           theme: theme.trim() || undefined,
+          discloseKey: beginner || undefined,
+          plaintext: ownText.trim() || undefined,
         }),
       });
       if (!res.ok) throw new Error('The generator did not respond.');
@@ -131,7 +136,7 @@ export function PracticeConsole({
     } finally {
       setBusy(false);
     }
-  }, [techniqueId, families, difficulties, seed, source, theme]);
+  }, [techniqueId, families, difficulties, seed, source, theme, beginner, ownText]);
 
   const submit = useCallback(async () => {
     if (!challenge || !answer.trim()) return;
@@ -197,6 +202,24 @@ export function PracticeConsole({
     set(list.includes(value) ? list.filter((x) => x !== value) : [...list, value]);
   };
 
+  /**
+   * Beginner mode.
+   *
+   * Difficulty 1 was not a beginner setting. It still withheld the key, so a
+   * first problem could be "here is some ciphertext, work out the keyword and
+   * then decode it" — two unknowns at once, and cryptanalysis rather than
+   * mechanism. Somebody meeting a cipher for the first time should be doing the
+   * method with the key in front of them.
+   */
+  const startBeginner = () => {
+    setBeginner(true);
+    setDifficulties([1]);
+    setFamilies([]);
+    setTechniqueId('caesar');
+    setSource('machine');
+    setOwnText('');
+  };
+
   return (
     <div className="mx-auto grid max-w-6xl gap-6 px-5 py-10 lg:grid-cols-[300px_1fr] lg:items-start">
       {/* ------------------------------------------------------------ controls */}
@@ -205,6 +228,45 @@ export function PracticeConsole({
         <p className="mt-1 text-xs leading-relaxed text-text-muted">
           Leave everything untouched to draw from the whole catalogue.
         </p>
+
+        <div className={`mt-4 rounded-xl border p-3 ${beginner ? 'border-ok bg-ok-soft' : 'border-border-subtle bg-bg-sunken'}`}>
+          <label className="flex cursor-pointer items-start gap-2">
+            <input
+              type="checkbox"
+              checked={beginner}
+              onChange={(e) => (e.target.checked ? startBeginner() : setBeginner(false))}
+              className="mt-0.5 accent-[var(--accent)]"
+            />
+            <span className="text-xs leading-relaxed">
+              <span className={`font-medium ${beginner ? 'text-ok' : 'text-text'}`}>
+                Beginner mode
+              </span>
+              <span className="block text-text-muted">
+                The key is shown, so you decode with it rather than having to work it out first.
+                Start here if a cipher is new to you.
+              </span>
+            </span>
+          </label>
+        </div>
+
+        <div className="mt-4">
+          <label htmlFor="owntext" className="text-[0.6875rem] font-medium uppercase tracking-[0.14em] text-text-faint">
+            Your own message
+          </label>
+          <textarea
+            id="owntext"
+            rows={2}
+            spellCheck={false}
+            value={ownText}
+            onChange={(e) => setOwnText(e.target.value)}
+            placeholder="Leave blank to use a drawn message"
+            className="mt-1.5 w-full resize-y rounded-lg border border-border-subtle bg-bg-sunken px-2.5 py-2 text-xs outline-none transition-colors focus:border-accent"
+          />
+          <p className="mt-1 text-xs leading-relaxed text-text-faint">
+            Type a sentence and the problem is built from it. To simply encipher text and see every
+            step, the workbench is the better tool.
+          </p>
+        </div>
 
         <fieldset className="mt-5">
           <legend className="text-[0.6875rem] font-medium uppercase tracking-[0.14em] text-text-faint">
@@ -260,11 +322,16 @@ export function PracticeConsole({
             className="mt-2 w-full rounded-lg border border-border-subtle bg-bg-sunken px-2.5 py-2 text-xs outline-none transition-colors focus:border-accent"
           >
             <option value="">Any</option>
+            {/* Easiest first. Alphabetical order put Chaocipher two lines
+                from Caesar, which is no help to somebody choosing where to
+                begin. */}
             {reversible
               .slice()
-              .sort((a, b) => a.name.localeCompare(b.name))
+              .sort((a, b) => a.difficulty - b.difficulty || a.name.localeCompare(b.name))
               .map((c) => (
-                <option key={c.id} value={c.id}>{c.name}</option>
+                <option key={c.id} value={c.id}>
+                  {'\u2605'.repeat(c.difficulty)} {c.name}
+                </option>
               ))}
           </select>
         </div>
@@ -369,6 +436,15 @@ export function PracticeConsole({
                   Difficulty {challenge.difficulty} — {DIFFICULTY_LABEL[challenge.difficulty]}
                 </span>
               </div>
+
+              {challenge.relaxed && challenge.relaxed.length > 0 && (
+                <p className="mt-3 rounded-lg border border-warn bg-warn-soft px-3 py-2 text-xs leading-relaxed text-warn">
+                  Those filters could not all hold at once, so the{' '}
+                  {challenge.relaxed.join(' and ')} setting
+                  {challenge.relaxed.length > 1 ? 's were' : ' was'} set aside for this problem.
+                  A named technique always wins over the broader filters.
+                </p>
+              )}
 
               <p className="mt-3 text-[0.9375rem] leading-relaxed">{challenge.prompt}</p>
 

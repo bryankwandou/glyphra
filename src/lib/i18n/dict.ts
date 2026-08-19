@@ -22,7 +22,7 @@ export const LOCALE_LABEL: Record<Locale, string> = {
  */
 export interface Dict {
   nav: {
-    practice: string; catalogue: string; tutorial: string; join: string;
+    practice: string; catalogue: string; tutorial: string; join: string; encode: string;
     papers: string; credentials: string; instructor: string; skip: string;
   };
   common: {
@@ -73,6 +73,7 @@ export interface Dict {
     questions: string; easiest: string; hardest: string; minutesLabel: string;
     joinCode: string; copyCode: string; codeCopied: string; copyLink: string;
     linkCopied: string; preview: string; reroll: string;
+    scanNote: string;
     note1: string; note2: string;
   };
 }
@@ -80,6 +81,7 @@ export interface Dict {
 const en: Dict = {
   nav: {
     practice: 'Practice', catalogue: 'Catalogue', tutorial: 'Tutorial', join: 'Join a quiz',
+    encode: 'Workbench',
     papers: 'Papers', credentials: 'Credentials', instructor: 'Instructor',
     skip: 'Skip to content',
   },
@@ -195,6 +197,7 @@ const en: Dict = {
     joinCode: 'Join code', copyCode: 'Copy the code', codeCopied: 'Code copied',
     copyLink: 'Copy the link', linkCopied: 'Link copied',
     preview: 'Preview it', reroll: 'Different questions',
+    scanNote: 'Point a phone camera at this to open the quiz.',
     note1:
       'The code carries the whole quiz, so the link never expires and nothing is stored about who took it. The other side of that: a code cannot be withdrawn once it is out, and the questions cannot be edited afterwards — changing a setting produces a new code.',
     note2:
@@ -205,6 +208,7 @@ const en: Dict = {
 const id: Dict = {
   nav: {
     practice: 'Latihan', catalogue: 'Katalog', tutorial: 'Tutorial', join: 'Ikut kuis',
+    encode: 'Bengkel',
     papers: 'Lembar soal', credentials: 'Kredensial', instructor: 'Pengajar',
     skip: 'Lompat ke konten',
   },
@@ -320,6 +324,7 @@ const id: Dict = {
     joinCode: 'Kode masuk', copyCode: 'Salin kodenya', codeCopied: 'Kode tersalin',
     copyLink: 'Salin tautannya', linkCopied: 'Tautan tersalin',
     preview: 'Pratinjau', reroll: 'Ganti soalnya',
+    scanNote: 'Arahkan kamera ponsel ke sini untuk membuka kuisnya.',
     note1:
       'Kodenya membawa seluruh kuis, jadi tautannya tidak pernah kedaluwarsa dan tidak ada catatan tentang siapa yang mengerjakannya. Sisi lainnya: kode tidak bisa ditarik kembali setelah tersebar, dan soalnya tidak bisa diubah setelahnya — mengubah pengaturan menghasilkan kode baru.',
     note2:

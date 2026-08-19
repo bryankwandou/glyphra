@@ -17,6 +17,10 @@ interface Body {
    */
   source?: 'machine' | 'ai';
   theme?: string;
+  /** Beginner mode: show the key instead of making them recover it first. */
+  discloseKey?: boolean;
+  /** A message the visitor typed themselves, instead of a drawn one. */
+  plaintext?: string;
 }
 
 /**
@@ -115,9 +119,16 @@ export async function POST(request: Request) {
     // An empty body is a valid request: generate anything.
   }
 
+  // A message the visitor typed wins over both the bank and the model. Asking
+  // for your own sentence and getting something else back is the same class of
+  // silent override that made the technique filter untrustworthy.
   let plaintext: string | undefined;
   let usedAi = false;
-  if (body.source === 'ai') {
+  const own = typeof body.plaintext === 'string' ? body.plaintext.trim().slice(0, 400) : '';
+
+  if (own) {
+    plaintext = own;
+  } else if (body.source === 'ai') {
     const generated = await aiPlaintext(body.theme);
     if (generated) {
       plaintext = generated;
@@ -131,11 +142,12 @@ export async function POST(request: Request) {
     difficulties: body.difficulties,
     seed: body.seed,
     plaintext,
+    discloseKey: body.discloseKey,
   });
 
   return NextResponse.json({
     ...publicPart,
-    messageSource: usedAi ? 'ai' : 'machine',
+    messageSource: own ? 'own' : usedAi ? 'ai' : 'machine',
     // The answer travels with the problem, sealed. The browser holds it but
     // cannot open it; only this server can, and only to mark an attempt or to
     // serve the instructor view.

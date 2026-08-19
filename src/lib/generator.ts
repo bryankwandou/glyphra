@@ -18,8 +18,17 @@ export interface GeneratorOptions {
   difficulties?: Difficulty[];
   /** Supplying a seed makes the entire problem reproducible. */
   seed?: string;
-  /** Overrides the message bank — used by the AI mode. */
+  /** Overrides the message bank — used by the AI mode and by typed input. */
   plaintext?: string;
+  /**
+   * Show every key field instead of withholding it.
+   *
+   * A beginner decoding with the key in front of them is doing the mechanism.
+   * A beginner asked to recover an unknown keyword first is doing cryptanalysis,
+   * which is a different and much harder skill. Difficulty 1 should be the
+   * former, and without this flag it was silently the latter.
+   */
+  discloseKey?: boolean;
 }
 
 /** What the student is allowed to see. */
@@ -41,6 +50,16 @@ export interface PublicChallenge {
    */
   keyFields: { label: string; disclosed: boolean; value?: string }[];
   plaintextLength: number;
+  /**
+   * Filters that could not all be satisfied together and were set aside.
+   *
+   * Never silently. Asking for the Hill cipher while also restricting to
+   * monoalphabetic substitution is a contradiction, and the old behaviour was
+   * to quietly discard every filter and return something unrelated — a person
+   * who asked for Hill got Gronsfeld with no indication anything had been
+   * ignored. The UI reports whatever appears here.
+   */
+  relaxed: string[];
 }
 
 /** What only the instructor view may see. */
@@ -83,28 +102,67 @@ const DISCLOSE_KEY_FIELD: Record<string, string[]> = {
   'chaocipher': ['left'],
 };
 
-function pickTechnique(opts: GeneratorOptions, rng: Rng): Technique {
-  // The default pool excludes techniques that cannot make a real problem. An
-  // explicit request by id still honours the request — an instructor asking for
-  // quoted-printable by name presumably wants to demonstrate exactly that it
-  // does nothing.
-  let pool = REVERSIBLE.filter((t) => !NOT_AS_PROBLEMS.has(t.id));
+interface Picked {
+  technique: Technique;
+  /** Which constraints had to be set aside, so the UI can say so. */
+  relaxed: string[];
+}
+
+/**
+ * Choose the technique, honouring the most specific instruction available.
+ *
+ * The previous version intersected every filter and, when the intersection came
+ * out empty, fell back to the entire catalogue. That turned a contradiction
+ * into a silent lie: selecting the Hill cipher while monoalphabetic
+ * substitution was also ticked produced a Gronsfeld problem at a difficulty
+ * nobody had asked for, with nothing on screen admitting the request had been
+ * dropped. Falling back to everything is the one behaviour that is worse than
+ * failing, because the person cannot tell it happened.
+ *
+ * Two rules now. A technique named outright wins over the broader filters,
+ * since picking one cipher by name is the least ambiguous thing a person can
+ * do. Otherwise constraints are relaxed one at a time, in a fixed order, and
+ * each one set aside is reported.
+ */
+function pickTechnique(opts: GeneratorOptions, rng: Rng): Picked {
+  const usable = REVERSIBLE.filter((t) => !NOT_AS_PROBLEMS.has(t.id));
+
   if (opts.techniqueIds?.length) {
     const wanted = new Set(opts.techniqueIds);
-    pool = TECHNIQUES.filter((t) => wanted.has(t.id));
+    const named = TECHNIQUES.filter((t) => wanted.has(t.id));
+    if (named.length) {
+      // An id given explicitly is honoured even for the degenerate encodings —
+      // asking for quoted-printable by name is presumably a demonstration that
+      // it does nothing.
+      const relaxed: string[] = [];
+      if (opts.families?.length && !named.some((t) => opts.families!.includes(t.family))) {
+        relaxed.push('family');
+      }
+      if (opts.difficulties?.length && !named.some((t) => opts.difficulties!.includes(t.difficulty))) {
+        relaxed.push('difficulty');
+      }
+      return { technique: rng.pick(named), relaxed };
+    }
   }
+
+  const relaxed: string[] = [];
+  let pool = usable;
+
   if (opts.families?.length) {
     const wanted = new Set(opts.families);
-    pool = pool.filter((t) => wanted.has(t.family));
+    const next = pool.filter((t) => wanted.has(t.family));
+    if (next.length) pool = next;
+    else relaxed.push('family');
   }
+
   if (opts.difficulties?.length) {
     const wanted = new Set(opts.difficulties);
-    pool = pool.filter((t) => wanted.has(t.difficulty));
+    const next = pool.filter((t) => wanted.has(t.difficulty));
+    if (next.length) pool = next;
+    else relaxed.push('difficulty');
   }
-  // Filters that exclude everything fall back to the whole usable pool rather
-  // than failing — a problem from outside the requested band beats no problem.
-  if (!pool.length) pool = REVERSIBLE.filter((t) => !NOT_AS_PROBLEMS.has(t.id));
-  return rng.pick(pool);
+
+  return { technique: rng.pick(pool), relaxed };
 }
 
 /**
@@ -169,7 +227,7 @@ export function generateChallenge(opts: GeneratorOptions = {}): GeneratedChallen
 
 function buildOne(opts: GeneratorOptions, seed: string, attempt: number): GeneratedChallenge {
   const rng = makeRng(attempt === 0 ? seed : `${seed}#${attempt}`);
-  const technique = pickTechnique(opts, rng);
+  const { technique, relaxed } = pickTechnique(opts, rng);
 
   const bank = VERBOSE.has(technique.id) ? SHORT : ALL_PLAINTEXTS;
   const plaintext = opts.plaintext?.trim() || rng.pick(bank);
@@ -184,11 +242,14 @@ function buildOne(opts: GeneratorOptions, seed: string, attempt: number): Genera
   const disclose = new Set(DISCLOSE_KEY_FIELD[technique.id] ?? []);
   const keyFields = technique.keySpec
     .filter((f) => f.kind !== 'none')
-    .map((f) => ({
-      label: f.label,
-      disclosed: disclose.has(f.name),
-      value: disclose.has(f.name) ? String(key[f.name]) : undefined,
-    }));
+    .map((f) => {
+      const shown = opts.discloseKey || disclose.has(f.name);
+      return {
+        label: f.label,
+        disclosed: shown,
+        value: shown ? String(key[f.name]) : undefined,
+      };
+    });
 
   return {
     publicPart: {
@@ -205,6 +266,7 @@ function buildOne(opts: GeneratorOptions, seed: string, attempt: number): Genera
       ciphertext: encoded.output,
       keyFields,
       plaintextLength: normalised.length,
+      relaxed,
     },
     solution: {
       plaintext: normalised,

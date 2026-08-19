@@ -21,6 +21,7 @@ export async function SiteFooter() {
           </div>
 
           <nav className="grid grid-cols-2 gap-x-12 gap-y-2 text-sm" aria-label="Footer">
+            <Link href="/encode" className="text-text-muted hover:text-text">{d.nav.encode}</Link>
             <Link href="/practice" className="text-text-muted hover:text-text">{d.nav.practice}</Link>
             <Link href="/tutorial" className="text-text-muted hover:text-text">{d.nav.tutorial}</Link>
             <Link href="/catalogue" className="text-text-muted hover:text-text">{d.nav.catalogue}</Link>

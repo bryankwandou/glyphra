@@ -10,6 +10,7 @@ export async function SiteHeader() {
   const d = await t();
 
   const links = [
+    { href: '/encode', label: d.nav.encode },
     { href: '/practice', label: d.nav.practice },
     { href: '/tutorial', label: d.nav.tutorial },
     { href: '/catalogue', label: d.nav.catalogue },

@@ -4,6 +4,7 @@ import { useMemo, useState } from 'react';
 import { encodeQuizCode, randomQuizSeed } from '@/lib/quiz-code';
 import type { Difficulty } from '@/lib/ciphers/types';
 import { useT } from '@/lib/i18n/client';
+import { QrCode } from './qr-code';
 
 /**
  * Builds a share code for a quiz.
@@ -117,6 +118,13 @@ export function QuizShare() {
           {code}
         </div>
         <div className="mt-3 break-all font-mono text-xs text-text-muted">{link}</div>
+
+        <div className="mt-5 flex flex-col items-center gap-2">
+          <QrCode value={link} size={172} />
+          <p className="text-xs text-text-faint">
+            {d.scanNote}
+          </p>
+        </div>
 
         <div className="mt-5 flex flex-wrap justify-center gap-2">
           <button
