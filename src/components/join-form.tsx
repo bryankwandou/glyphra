@@ -2,9 +2,11 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { useT } from '@/lib/i18n/client';
 
 export function JoinForm() {
   const router = useRouter();
+  const d = useT().join;
   const [code, setCode] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
@@ -25,7 +27,7 @@ export function JoinForm() {
     e.preventDefault();
     const cleaned = code.replace(/-/g, '');
     if (cleaned.length !== 8) {
-      setError('A code is eight characters.');
+      setError(d.errLength);
       return;
     }
     setBusy(true);
@@ -34,7 +36,7 @@ export function JoinForm() {
       const res = await fetch(`/api/quiz?code=${encodeURIComponent(code)}`);
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));
-        throw new Error(data.error ?? 'That code did not open a quiz.');
+        throw new Error(data.error ?? d.errNotFound);
       }
       router.push(`/q/${encodeURIComponent(code)}`);
     } catch (err) {
@@ -45,12 +47,12 @@ export function JoinForm() {
 
   return (
     <form onSubmit={submit} className="mt-8">
-      <label htmlFor="code" className="sr-only">Quiz code</label>
+      <label htmlFor="code" className="sr-only">{d.title}</label>
       <input
         id="code"
         value={code}
         onChange={(e) => onChange(e.target.value)}
-        placeholder="XXXX-XXXX"
+        placeholder={d.placeholder}
         autoComplete="off"
         autoCapitalize="characters"
         spellCheck={false}
@@ -68,7 +70,7 @@ export function JoinForm() {
         disabled={busy}
         className="mt-4 w-full rounded-xl bg-accent px-4 py-3 text-sm font-medium text-accent-text transition-colors hover:bg-accent-hover disabled:opacity-50"
       >
-        {busy ? 'Opening…' : 'Open the quiz'}
+        {busy ? d.opening : d.open}
       </button>
     </form>
   );

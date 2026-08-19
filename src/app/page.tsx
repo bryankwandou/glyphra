@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { LiveCipher } from '@/components/live-cipher';
 import { TECHNIQUES, REVERSIBLE, CATALOGUE_SIZE, FAMILY_LABEL } from '@/lib/ciphers';
 import type { Family } from '@/lib/ciphers/types';
+import { t } from '@/lib/i18n';
 
 function familyCounts() {
   const counts = new Map<Family, number>();
@@ -9,9 +10,10 @@ function familyCounts() {
   return [...counts.entries()].sort((a, b) => b[1] - a[1]);
 }
 
-export default function Home() {
+export default async function Home() {
   const families = familyCounts();
   const oneWay = CATALOGUE_SIZE - REVERSIBLE.length;
+  const d = (await t()).home;
 
   return (
     <>
@@ -22,20 +24,17 @@ export default function Home() {
           <div className="rise">
             <p className="inline-flex items-center gap-2 rounded-full border border-border-subtle bg-bg-raised px-3 py-1 text-xs text-text-muted">
               <span className="h-1.5 w-1.5 rounded-full bg-ok" aria-hidden />
-              {REVERSIBLE.length} techniques verified against their own inverse
+              {d.badge(REVERSIBLE.length)}
             </p>
 
             <h1 className="mt-5 text-4xl font-semibold leading-[1.08] tracking-[-0.03em] sm:text-5xl lg:text-[3.5rem]">
-              Cryptography problems,
+              {d.h1a}
               <br />
-              <span className="text-accent">generated the moment you ask.</span>
+              <span className="text-accent">{d.h1b}</span>
             </h1>
 
             <p className="mt-5 max-w-xl text-base leading-relaxed text-text-muted sm:text-lg">
-              Press one button and a fresh exercise appears, drawn from {CATALOGUE_SIZE} techniques
-              that run from a Caesar shift a student meets in week one to AES and ChaCha20. Answers
-              and full worked solutions sit behind the instructor sign-in, so a class can practise
-              without anyone reading ahead.
+              {d.lead(CATALOGUE_SIZE)}
             </p>
 
             <div className="mt-8 flex flex-wrap items-center gap-3">
@@ -43,21 +42,21 @@ export default function Home() {
                 href="/practice"
                 className="rounded-xl bg-accent px-5 py-3 text-sm font-medium text-accent-text shadow-[var(--shadow-md)] transition-colors hover:bg-accent-hover"
               >
-                Generate a problem
+                {d.ctaGenerate}
               </Link>
               <Link
                 href="/catalogue"
                 className="rounded-xl border border-border-strong bg-bg-raised px-5 py-3 text-sm font-medium transition-colors hover:border-accent"
               >
-                Browse the catalogue
+                {d.ctaCatalogue}
               </Link>
             </div>
 
             <dl className="mt-10 grid max-w-md grid-cols-3 gap-6">
               {[
-                { k: CATALOGUE_SIZE, v: 'techniques' },
-                { k: families.length, v: 'families' },
-                { k: '1,128', v: 'round trips per check' },
+                { k: CATALOGUE_SIZE, v: d.statTechniques },
+                { k: families.length, v: d.statFamilies },
+                { k: '1,128', v: d.statTrips },
               ].map((s) => (
                 <div key={s.v}>
                   <dt className="text-2xl font-semibold tabular-nums tracking-tight">{s.k}</dt>
@@ -77,29 +76,28 @@ export default function Home() {
       <section className="border-b border-border-subtle">
         <div className="mx-auto max-w-6xl px-5 py-16">
           <h2 className="text-2xl font-semibold tracking-[-0.02em] sm:text-3xl">
-            How a problem reaches you
+            {d.mechanicsH}
           </h2>
           <p className="mt-3 max-w-2xl text-text-muted">
-            Nothing is pre-written. Each exercise is built on request, enciphered by the same engine
-            that checks itself, and sealed before it leaves the server.
+            {d.mechanicsP}
           </p>
 
           <ol className="mt-10 grid gap-5 md:grid-cols-3">
             {[
               {
                 n: '01',
-                h: 'Pick your constraints, or none',
-                p: 'Choose a technique, a family, a difficulty band, or leave it open and take whatever comes. A seed can be supplied so an entire class receives the identical paper.',
+                h: d.step1H,
+                p: d.step1P,
               },
               {
                 n: '02',
-                h: 'The message is drawn, then enciphered',
-                p: 'Either from the built-in bank or from a language model when you want fresh wording. The model writes the sentence and never touches the cryptography — that stays with the verified engine.',
+                h: d.step2H,
+                p: d.step2P,
               },
               {
                 n: '03',
-                h: 'The answer travels sealed',
-                p: 'The solution is encrypted with AES-256-GCM and handed to your browser as an opaque blob. Marking happens server-side. Reading the page source gets you nothing.',
+                h: d.step3H,
+                p: d.step3P,
               },
             ].map((s) => (
               <li
@@ -120,23 +118,16 @@ export default function Home() {
         <div className="mx-auto grid max-w-6xl gap-10 px-5 py-16 lg:grid-cols-2 lg:items-center">
           <div>
             <h2 className="text-2xl font-semibold tracking-[-0.02em] sm:text-3xl">
-              A wrong answer key is worse than no answer key
+              {d.correctH}
             </h2>
             <p className="mt-4 leading-relaxed text-text-muted">
-              A cipher implementation that is subtly wrong will still produce output that looks like
-              ciphertext. A student cannot tell. The marking will simply be wrong, and they will
-              conclude they misunderstood the method.
+              {d.correctP1}
             </p>
             <p className="mt-4 leading-relaxed text-text-muted">
-              So every technique is run against its own inverse before it can appear: twelve random
-              key and message pairs each, asserting that decoding returns exactly what was encoded.
-              The first time that harness ran it rejected six techniques. A duplicate glyph in the
-              Pigpen table. An RSA parameter set where the public exponent shared a factor with the
-              totient, so no private exponent existed. Steganography with no terminator, decoding
-              endless letters past the end of the payload.
+              {d.correctP2}
             </p>
             <p className="mt-4 leading-relaxed text-text-muted">
-              All six are fixed. The check runs on every build, and a failure stops the build.
+              {d.correctP3}
             </p>
           </div>
 
@@ -160,20 +151,16 @@ Round trips attempted: ${REVERSIBLE.length * 12}
         <div className="mx-auto grid max-w-6xl gap-10 px-5 py-16 lg:grid-cols-[1.1fr_1fr] lg:items-center">
           <div>
             <p className="text-xs font-medium uppercase tracking-[0.16em] text-accent">
-              Share it with a class
+              {d.quizEyebrow}
             </p>
             <h2 className="mt-3 text-2xl font-semibold tracking-[-0.02em] sm:text-3xl">
-              One code, everyone in, marked automatically
+              {d.quizH}
             </h2>
             <p className="mt-4 leading-relaxed text-text-muted">
-              Set the length, the difficulty and a time limit, and you get an eight-character code
-              and a link. Participants open it, type a name and start. No account, no sign-up, and
-              nothing recorded about who took it.
+              {d.quizP1}
             </p>
             <p className="mt-4 leading-relaxed text-text-muted">
-              The code carries the whole quiz rather than pointing at a stored one, so the link
-              never expires and two people typing the same code get exactly the same questions. The
-              other side of that is worth knowing: a code cannot be withdrawn once it is out.
+              {d.quizP2}
             </p>
 
             <div className="mt-6 flex flex-wrap gap-3">
@@ -181,13 +168,13 @@ Round trips attempted: ${REVERSIBLE.length * 12}
                 href="/join"
                 className="rounded-xl bg-accent px-5 py-2.5 text-sm font-medium text-accent-text transition-colors hover:bg-accent-hover"
               >
-                Join with a code
+                {d.quizJoin}
               </Link>
               <Link
                 href="/assess"
                 className="rounded-xl border border-border-strong bg-bg-raised px-5 py-2.5 text-sm font-medium transition-colors hover:border-accent"
               >
-                Create one
+                {d.quizCreate}
               </Link>
             </div>
           </div>
@@ -195,7 +182,7 @@ Round trips attempted: ${REVERSIBLE.length * 12}
           <div className="rounded-2xl border border-border-subtle bg-bg-raised p-6 shadow-[var(--shadow-md)]">
             <div className="text-center">
               <div className="text-[0.6875rem] uppercase tracking-[0.16em] text-text-faint">
-                Join code
+                {d.quizJoinCode}
               </div>
               <div className="mt-2 font-mono text-4xl font-semibold tracking-[0.12em] text-accent">
                 CY9J-8B59
@@ -204,10 +191,10 @@ Round trips attempted: ${REVERSIBLE.length * 12}
 
             <ul className="mt-6 space-y-2.5">
               {[
-                ['Eight characters', 'checked for typos, so one wrong letter is caught rather than opening a different quiz'],
-                ['Timer and progress', 'a question map, flag-to-revisit, and a review step before submitting'],
-                ['Answers kept locally', 'a tab closed by accident does not cost the attempt'],
-                ['Marked at the end', 'never question by question, which would let someone probe their way to an answer'],
+                [d.quizF1H, d.quizF1P],
+                [d.quizF2H, d.quizF2P],
+                [d.quizF3H, d.quizF3P],
+                [d.quizF4H, d.quizF4P],
               ].map(([head, tail]) => (
                 <li key={head} className="flex gap-2.5 text-sm">
                   <span className="mt-[0.45rem] h-1.5 w-1.5 shrink-0 rounded-full bg-accent" aria-hidden />
@@ -226,26 +213,22 @@ Round trips attempted: ${REVERSIBLE.length * 12}
         <div className="mx-auto grid max-w-6xl gap-10 px-5 py-16 lg:grid-cols-[1fr_1.1fr] lg:items-center">
           <div>
             <p className="text-xs font-medium uppercase tracking-[0.16em] text-accent">
-              For whoever marks the work
+              {d.assessEyebrow}
             </p>
             <h2 className="mt-3 text-2xl font-semibold tracking-[-0.02em] sm:text-3xl">
-              Thirty students, thirty different papers, one key
+              {d.assessH}
             </h2>
             <p className="mt-4 leading-relaxed text-text-muted">
-              Set a cohort size and a difficulty band. You get a separate paper for every student
-              over the same techniques, plus a single marking key that covers all of them. Copying a
-              neighbour stops helping, and the marks stay comparable.
+              {d.assessP1}
             </p>
             <p className="mt-4 leading-relaxed text-text-muted">
-              Every paper carries an identical difficulty composition, so nobody draws an easier
-              sheet than the person beside them. Nothing is stored: a paper is a function of its
-              seed, and the seed is printed on it, so a sheet lost in March can be rebuilt in August.
+              {d.assessP2}
             </p>
             <Link
               href="/assess"
               className="mt-6 inline-block rounded-xl border border-border-strong bg-bg-raised px-5 py-2.5 text-sm font-medium transition-colors hover:border-accent"
             >
-              Build a set of papers
+              {d.assessCta}
             </Link>
           </div>
 
@@ -273,9 +256,9 @@ Round trips attempted: ${REVERSIBLE.length * 12}
               ))}
             </ul>
             <p className="mt-4 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-text-faint">
-              <span>difficulty 2, 3, 4 on every sheet</span>
+              <span>{d.assessNote1}</span>
               <span aria-hidden>·</span>
-              <span className="text-ok">no technique repeats within a paper</span>
+              <span className="text-ok">{d.assessNote2}</span>
             </p>
           </div>
         </div>
@@ -287,18 +270,17 @@ Round trips attempted: ${REVERSIBLE.length * 12}
           <div className="flex flex-wrap items-end justify-between gap-4">
             <div>
               <h2 className="text-2xl font-semibold tracking-[-0.02em] sm:text-3xl">
-                Ten families, three thousand years
+                {d.familiesH}
               </h2>
               <p className="mt-3 max-w-2xl text-text-muted">
-                From a Spartan rod to a stream cipher built to dodge cache-timing attacks. Each entry
-                carries its mechanism, its period, and an honest account of how it was broken.
+                {d.familiesP}
               </p>
             </div>
             <Link
               href="/catalogue"
               className="rounded-lg border border-border-strong bg-bg-raised px-4 py-2 text-sm font-medium transition-colors hover:border-accent"
             >
-              Open the catalogue
+              {d.familiesCta}
             </Link>
           </div>
 
@@ -326,24 +308,23 @@ Round trips attempted: ${REVERSIBLE.length * 12}
         <div className="mx-auto max-w-6xl px-5 py-20">
           <div className="rounded-3xl border border-border-subtle bg-bg-raised p-8 text-center shadow-[var(--shadow-lg)] sm:p-14">
             <h2 className="text-2xl font-semibold tracking-[-0.02em] sm:text-3xl">
-              Take one now and see how far you get
+              {d.closingH}
             </h2>
             <p className="mx-auto mt-4 max-w-xl text-text-muted">
-              No account, no setup. Pick a difficulty and start. If you get stuck, the catalogue
-              explains the mechanism without handing over the answer.
+              {d.closingP}
             </p>
             <div className="mt-8 flex flex-wrap justify-center gap-3">
               <Link
                 href="/practice"
                 className="rounded-xl bg-accent px-6 py-3 text-sm font-medium text-accent-text transition-colors hover:bg-accent-hover"
               >
-                Generate a problem
+                {d.closingCta}
               </Link>
               <Link
                 href="/instructor"
                 className="rounded-xl border border-border-strong px-6 py-3 text-sm font-medium transition-colors hover:border-accent"
               >
-                Instructor sign-in
+                {d.closingInstructor}
               </Link>
             </div>
           </div>

@@ -3,6 +3,7 @@
 import { useMemo, useState } from 'react';
 import { encodeQuizCode, randomQuizSeed } from '@/lib/quiz-code';
 import type { Difficulty } from '@/lib/ciphers/types';
+import { useT } from '@/lib/i18n/client';
 
 /**
  * Builds a share code for a quiz.
@@ -12,6 +13,7 @@ import type { Difficulty } from '@/lib/ciphers/types';
  * setting simply produces a different code.
  */
 export function QuizShare() {
+  const d = useT().share;
   const [questions, setQuestions] = useState(6);
   const [low, setLow] = useState<Difficulty>(1);
   const [high, setHigh] = useState<Difficulty>(3);
@@ -43,17 +45,15 @@ export function QuizShare() {
 
   return (
     <section className="no-print rounded-2xl border border-border-subtle bg-bg-raised p-6">
-      <h2 className="font-medium tracking-[-0.01em]">Share a quiz</h2>
+      <h2 className="font-medium tracking-[-0.01em]">{d.title}</h2>
       <p className="mt-1.5 max-w-2xl text-sm leading-relaxed text-text-muted">
-        For practice rather than assessment: one link, everybody gets the same questions, marked
-        automatically. Participants need no account. Set it up here and hand out either the code or
-        the link.
+        {d.lead}
       </p>
 
       <div className="mt-6 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
         <div>
           <label htmlFor="qq" className="text-[0.6875rem] font-medium uppercase tracking-[0.14em] text-text-faint">
-            Questions
+            {d.questions}
           </label>
           <input
             id="qq"
@@ -67,7 +67,7 @@ export function QuizShare() {
         </div>
         <div>
           <label htmlFor="ql" className="text-[0.6875rem] font-medium uppercase tracking-[0.14em] text-text-faint">
-            Easiest
+            {d.easiest}
           </label>
           <select
             id="ql"
@@ -80,7 +80,7 @@ export function QuizShare() {
         </div>
         <div>
           <label htmlFor="qh" className="text-[0.6875rem] font-medium uppercase tracking-[0.14em] text-text-faint">
-            Hardest
+            {d.hardest}
           </label>
           <select
             id="qh"
@@ -95,7 +95,7 @@ export function QuizShare() {
         </div>
         <div>
           <label htmlFor="qm" className="text-[0.6875rem] font-medium uppercase tracking-[0.14em] text-text-faint">
-            Minutes — 0 for open
+            {d.minutesLabel}
           </label>
           <input
             id="qm"
@@ -111,7 +111,7 @@ export function QuizShare() {
 
       <div className="mt-6 rounded-xl border border-border-subtle bg-bg-sunken p-5 text-center">
         <div className="text-[0.6875rem] uppercase tracking-[0.16em] text-text-faint">
-          Join code
+          {d.joinCode}
         </div>
         <div className="mt-2 font-mono text-4xl font-semibold tracking-[0.12em] text-accent">
           {code}
@@ -124,14 +124,14 @@ export function QuizShare() {
             onClick={() => copy('code')}
             className="rounded-lg border border-border-strong px-4 py-2 text-sm transition-colors hover:border-accent"
           >
-            {copied === 'code' ? 'Code copied' : 'Copy the code'}
+            {copied === 'code' ? d.codeCopied : d.copyCode}
           </button>
           <button
             type="button"
             onClick={() => copy('link')}
             className="rounded-lg bg-accent px-4 py-2 text-sm font-medium text-accent-text transition-colors hover:bg-accent-hover"
           >
-            {copied === 'link' ? 'Link copied' : 'Copy the link'}
+            {copied === 'link' ? d.linkCopied : d.copyLink}
           </button>
           <a
             href={link}
@@ -139,27 +139,24 @@ export function QuizShare() {
             rel="noreferrer noopener"
             className="rounded-lg border border-border-strong px-4 py-2 text-sm transition-colors hover:border-accent"
           >
-            Preview it
+            {d.preview}
           </a>
           <button
             type="button"
             onClick={() => setSeed(randomQuizSeed())}
             className="rounded-lg px-4 py-2 text-sm text-text-muted transition-colors hover:text-text"
           >
-            Different questions
+            {d.reroll}
           </button>
         </div>
       </div>
 
       <div className="mt-4 space-y-2 text-xs leading-relaxed text-text-faint">
         <p>
-          The code carries the whole quiz, so the link never expires and nothing is stored about who
-          took it. The other side of that: a code cannot be withdrawn once it is out, and the
-          questions cannot be edited afterwards — changing a setting produces a new code.
+          {d.note1}
         </p>
         <p>
-          Anyone with the code can open the quiz, and results are shown to the participant rather
-          than collected. Use the assessment papers above when the marks have to count.
+          {d.note2}
         </p>
       </div>
     </section>

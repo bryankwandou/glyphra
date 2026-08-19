@@ -3,6 +3,8 @@ import { Inter, JetBrains_Mono } from 'next/font/google';
 import './globals.css';
 import { SiteHeader } from '@/components/site-header';
 import { SiteFooter } from '@/components/site-footer';
+import { LanguageProvider } from '@/lib/i18n/client';
+import { currentLocale, t } from '@/lib/i18n';
 
 const inter = Inter({
   variable: '--font-sans-stack',
@@ -56,19 +58,30 @@ export const viewport: Viewport = {
   ],
 };
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default async function RootLayout({ children }: { children: React.ReactNode }) {
+  // Read once here and hand the locale down, so the whole tree renders in one
+  // language on the server rather than correcting itself after hydration.
+  const locale = await currentLocale();
+  const d = await t();
+
   return (
-    <html lang="en" className={`${inter.variable} ${mono.variable} h-full`} suppressHydrationWarning>
+    <html
+      lang={locale}
+      className={`${inter.variable} ${mono.variable} h-full`}
+      suppressHydrationWarning
+    >
       <body className="min-h-full flex flex-col bg-bg text-text">
         <a
           href="#main"
           className="sr-only focus:not-sr-only focus:absolute focus:z-50 focus:top-3 focus:left-3 focus:rounded-lg focus:bg-accent focus:px-4 focus:py-2 focus:text-accent-text"
         >
-          Skip to content
+          {d.nav.skip}
         </a>
-        <SiteHeader />
-        <main id="main" className="flex-1">{children}</main>
-        <SiteFooter />
+        <LanguageProvider locale={locale}>
+          <SiteHeader />
+          <main id="main" className="flex-1">{children}</main>
+          <SiteFooter />
+        </LanguageProvider>
       </body>
     </html>
   );

@@ -50,6 +50,35 @@ The first time it ran it rejected six techniques:
 All six are fixed. Current state: **94 of 94 reversible techniques round-trip exactly**, across 1,128
 round trips per run.
 
+## Two languages, and a tutorial
+
+The interface runs in English and Indonesian. The choice is a cookie, not a URL prefix, so every
+route keeps working unchanged and server components render already-translated markup — nothing
+flashes in English and then corrects itself.
+
+The Indonesian was written by hand alongside the English rather than passed through a translator.
+Several lines say the same thing differently, because the literal rendering reads like a machine
+wrote it, and this is a tool someone stands in front of a class with.
+
+**Deliberately not translated:** the 101 catalogue entries. Each carries a mechanism description
+precise enough to work through by hand, and a half-accurate translation of those would teach the
+wrong method. They stay in English until someone who knows the material writes them properly.
+
+`/tutorial` is the beginner path, and it is bilingual in full. It covers:
+
+- **The distinction that causes most beginner mistakes** — cipher, encoding and hash answer three
+  different questions. This is not academic: ROT5 and quoted-printable were quietly handing students
+  the plaintext verbatim, because both leave ordinary letters untouched.
+- **All ten families**, each with what actually defines it, how to recognise it from the ciphertext
+  alone, a worked example, how it breaks, and when a teacher would set it.
+- **A teaching order that follows the history**, seven steps, each motivated by the failure of the
+  one before it.
+- **How to run each surface** — practice, shared quiz, assessment papers — with the caveats attached
+  rather than buried.
+
+Every example on that page came out of the engine from the same message and was confirmed to decode
+back to it before it was written down.
+
 ## Shared quizzes
 
 For practice with a group rather than assessment. Set the length, difficulty band and time limit at
@@ -242,6 +271,8 @@ npm run dev
 | `GROQ_API_KEY` | No | Enables model-written messages |
 | `SOLANA_ISSUER_SECRET` | No | Base58 64-byte secret key, or 32-byte hex seed. Enables credentials |
 | `SOLANA_RPC_URL` | No | Defaults to the public devnet endpoint |
+
+Language is a per-visitor cookie (`glyphra_lang`), so no configuration is involved.
 
 Without `GLYPHRA_SECRET` the app falls back to a build-time constant and logs a warning in
 production. Sealed answers are then readable by anyone with the source. Set it.

@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
+import { useT } from '@/lib/i18n/client';
 
 interface Question {
   number: number;
@@ -54,6 +55,7 @@ function clockFace(seconds: number): string {
 
 export function QuizRunner({ quiz }: { quiz: Quiz }) {
   const storageKey = `glyphra:quiz:${quiz.code}`;
+  const d = useT();
 
   const [phase, setPhase] = useState<Phase>('lobby');
   const [name, setName] = useState('');
@@ -186,7 +188,7 @@ export function QuizRunner({ quiz }: { quiz: Quiz }) {
       <div className="mx-auto max-w-lg px-5 py-16">
         <div className="rounded-2xl border border-border-subtle bg-bg-raised p-7 shadow-[var(--shadow-md)]">
           <p className="text-[0.6875rem] font-medium uppercase tracking-[0.16em] text-text-faint">
-            Quiz
+            {d.quiz.eyebrow}
           </p>
           <h1 className="mt-2 font-mono text-3xl font-semibold tracking-[-0.02em] text-accent">
             {quiz.code}
@@ -194,11 +196,11 @@ export function QuizRunner({ quiz }: { quiz: Quiz }) {
 
           <dl className="mt-6 grid grid-cols-3 gap-3 text-center">
             <div className="rounded-lg bg-bg-sunken px-3 py-3">
-              <dt className="text-xs text-text-faint">Questions</dt>
+              <dt className="text-xs text-text-faint">{d.common.questions}</dt>
               <dd className="mt-1 text-lg font-semibold tabular-nums">{quiz.questionCount}</dd>
             </div>
             <div className="rounded-lg bg-bg-sunken px-3 py-3">
-              <dt className="text-xs text-text-faint">Difficulty</dt>
+              <dt className="text-xs text-text-faint">{d.common.difficulty}</dt>
               <dd className="mt-1 text-lg font-semibold tabular-nums">
                 {quiz.difficultyLow === quiz.difficultyHigh
                   ? quiz.difficultyLow
@@ -206,32 +208,30 @@ export function QuizRunner({ quiz }: { quiz: Quiz }) {
               </dd>
             </div>
             <div className="rounded-lg bg-bg-sunken px-3 py-3">
-              <dt className="text-xs text-text-faint">Time</dt>
+              <dt className="text-xs text-text-faint">{d.common.time}</dt>
               <dd className="mt-1 text-lg font-semibold tabular-nums">
-                {quiz.timeLimitSeconds ? `${quiz.timeLimitSeconds / 60}m` : 'Open'}
+                {quiz.timeLimitSeconds ? `${quiz.timeLimitSeconds / 60}m` : d.common.open}
               </dd>
             </div>
           </dl>
 
           <label htmlFor="qname" className="mt-6 block text-[0.6875rem] font-medium uppercase tracking-[0.14em] text-text-faint">
-            Your name
+            {d.quiz.yourName}
           </label>
           <input
             id="qname"
             value={name}
             onChange={(e) => setName(e.target.value)}
-            placeholder="So your result is labelled"
+            placeholder={d.quiz.namePlaceholder}
             className="mt-1.5 w-full rounded-lg border border-border-subtle bg-bg-sunken px-3 py-2.5 text-sm outline-none transition-colors focus:border-accent"
           />
           <p className="mt-1.5 text-xs leading-relaxed text-text-faint">
-            The name stays in this browser and on your own result screen. Nothing is sent anywhere
-            until you submit, and no account is created.
+            {d.quiz.nameNote}
           </p>
 
           {answeredCount > 0 && (
             <p className="mt-4 rounded-lg border border-ok bg-ok-soft px-3 py-2 text-sm text-ok">
-              An earlier attempt was found on this device — {answeredCount} of{' '}
-              {quiz.questions.length} answered. Starting will pick up where you left off.
+              {d.quiz.resumeFound(answeredCount, quiz.questions.length)}
             </p>
           )}
 
@@ -240,7 +240,7 @@ export function QuizRunner({ quiz }: { quiz: Quiz }) {
             onClick={() => { setPhase('running'); go(0); }}
             className="mt-6 w-full rounded-xl bg-accent px-4 py-3 text-sm font-medium text-accent-text transition-colors hover:bg-accent-hover"
           >
-            {answeredCount > 0 ? 'Resume' : 'Start'}
+            {answeredCount > 0 ? d.quiz.resume : d.quiz.start}
           </button>
 
           <button
@@ -248,7 +248,7 @@ export function QuizRunner({ quiz }: { quiz: Quiz }) {
             onClick={copyLink}
             className="mt-3 w-full rounded-xl border border-border-strong px-4 py-2.5 text-sm transition-colors hover:border-accent"
           >
-            {copied ? 'Link copied' : 'Copy the link to share'}
+            {copied ? d.quiz.linkCopied : d.quiz.copyLink}
           </button>
         </div>
       </div>
@@ -264,13 +264,13 @@ export function QuizRunner({ quiz }: { quiz: Quiz }) {
       <div className="mx-auto max-w-3xl px-5 py-12">
         <div className="rounded-2xl border border-border-subtle bg-bg-raised p-7 text-center">
           <p className="text-[0.6875rem] font-medium uppercase tracking-[0.16em] text-text-faint">
-            {result.name ? `${result.name} — ` : ''}quiz {result.code}
+            {result.name ? `${result.name} — ` : ''}{d.quiz.eyebrow} {result.code}
           </p>
           <div className={`mt-3 text-6xl font-semibold tabular-nums tracking-tight ${band}`}>
             {result.score}%
           </div>
           <p className="mt-2 text-text-muted">
-            {result.correct} of {result.total} recovered
+            {d.quiz.recovered(result.correct, result.total)}
           </p>
 
           <div className="mt-6 flex flex-wrap justify-center gap-3">
@@ -278,19 +278,19 @@ export function QuizRunner({ quiz }: { quiz: Quiz }) {
               href="/practice"
               className="rounded-xl bg-accent px-5 py-2.5 text-sm font-medium text-accent-text transition-colors hover:bg-accent-hover"
             >
-              Keep practising
+              {d.quiz.keepPractising}
             </Link>
             <button
               type="button"
               onClick={copyLink}
               className="rounded-xl border border-border-strong px-5 py-2.5 text-sm transition-colors hover:border-accent"
             >
-              {copied ? 'Link copied' : 'Share this quiz'}
+              {copied ? d.quiz.linkCopied : d.quiz.shareQuiz}
             </button>
           </div>
         </div>
 
-        <h2 className="mt-10 text-lg font-medium tracking-[-0.01em]">Where the marks went</h2>
+        <h2 className="mt-10 text-lg font-medium tracking-[-0.01em]">{d.quiz.whereMarks}</h2>
         <ol className="mt-4 space-y-3">
           {result.results.map((r) => (
             <li
@@ -303,7 +303,7 @@ export function QuizRunner({ quiz }: { quiz: Quiz }) {
                 <span className="text-sm font-medium tabular-nums">{r.number}.</span>
                 <span className="text-sm text-text-muted">{r.techniqueName}</span>
                 <span className={`ml-auto text-xs font-medium ${r.correct ? 'text-ok' : 'text-bad'}`}>
-                  {r.correct ? 'Correct' : r.submitted.trim() ? 'Not recovered' : 'Left blank'}
+                  {r.correct ? d.quiz.correct : r.submitted.trim() ? d.quiz.notRecovered : d.quiz.leftBlank}
                 </span>
               </div>
 
@@ -312,7 +312,7 @@ export function QuizRunner({ quiz }: { quiz: Quiz }) {
                   {r.submitted.trim() && (
                     <div>
                       <div className="text-[0.6875rem] uppercase tracking-[0.12em] text-text-faint">
-                        You wrote
+                        {d.quiz.youWrote}
                       </div>
                       <p className="plain-text mt-0.5 break-words text-sm text-text-muted">
                         {r.submitted}
@@ -321,7 +321,7 @@ export function QuizRunner({ quiz }: { quiz: Quiz }) {
                   )}
                   <div>
                     <div className="text-[0.6875rem] uppercase tracking-[0.12em] text-text-faint">
-                      The message was
+                      {d.quiz.messageWas}
                     </div>
                     <p className="plain-text mt-0.5 break-words text-sm text-text">{r.expected}</p>
                   </div>
@@ -338,10 +338,10 @@ export function QuizRunner({ quiz }: { quiz: Quiz }) {
   if (phase === 'review') {
     return (
       <div className="mx-auto max-w-2xl px-5 py-12">
-        <h1 className="text-2xl font-semibold tracking-[-0.02em]">Before you submit</h1>
+        <h1 className="text-2xl font-semibold tracking-[-0.02em]">{d.quiz.reviewTitle}</h1>
         <p className="mt-2 text-text-muted">
-          {answeredCount} of {quiz.questions.length} answered.
-          {unanswered.length > 0 && ' Blank answers are marked wrong.'}
+          {d.quiz.reviewLead(answeredCount, quiz.questions.length)}
+          {unanswered.length > 0 && ` ${d.quiz.reviewBlankWarn}`}
         </p>
 
         <div className="mt-6 grid grid-cols-5 gap-2 sm:grid-cols-8">
@@ -375,14 +375,14 @@ export function QuizRunner({ quiz }: { quiz: Quiz }) {
             disabled={busy}
             className="rounded-xl bg-accent px-6 py-3 text-sm font-medium text-accent-text transition-colors hover:bg-accent-hover disabled:opacity-50"
           >
-            {busy ? 'Marking…' : 'Submit for marking'}
+            {busy ? d.quiz.marking : d.quiz.submit}
           </button>
           <button
             type="button"
             onClick={() => setPhase('running')}
             className="rounded-xl border border-border-strong px-5 py-3 text-sm transition-colors hover:border-accent"
           >
-            Back to the questions
+            {d.quiz.backToQuestions}
           </button>
         </div>
       </div>
@@ -398,9 +398,9 @@ export function QuizRunner({ quiz }: { quiz: Quiz }) {
       {/* progress and clock */}
       <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
         <span className="text-sm tabular-nums text-text-muted">
-          Question {current + 1} of {quiz.questions.length}
+          {d.quiz.questionOf(current + 1, quiz.questions.length)}
         </span>
-        <span className="text-xs text-text-faint">{answeredCount} answered</span>
+        <span className="text-xs text-text-faint">{d.quiz.answered(answeredCount)}</span>
         {remaining !== null && (
           <span
             className={`ml-auto rounded-lg px-2.5 py-1 font-mono text-sm tabular-nums ${
@@ -429,7 +429,7 @@ export function QuizRunner({ quiz }: { quiz: Quiz }) {
             type="button"
             onClick={() => go(i)}
             aria-current={i === current}
-            aria-label={`Question ${item.number}${answers[i].trim() ? ', answered' : ', not answered'}`}
+            aria-label={`${d.quiz.questionOf(item.number, quiz.questions.length)} — ${answers[i].trim() ? d.quiz.answered(1) : '0'}`}
             className={`h-7 w-7 rounded-md text-xs tabular-nums transition-colors ${
               i === current
                 ? 'bg-accent text-accent-text'
@@ -451,7 +451,7 @@ export function QuizRunner({ quiz }: { quiz: Quiz }) {
               {q.techniqueName}
             </span>
             <span className="text-text-faint">{q.era}</span>
-            <span className="ml-auto tabular-nums text-text-faint">Difficulty {q.difficulty}</span>
+            <span className="ml-auto tabular-nums text-text-faint">{d.common.difficulty} {q.difficulty}</span>
           </div>
 
           <p className="mt-3 text-[0.9375rem] leading-relaxed">{q.prompt}</p>
@@ -464,7 +464,7 @@ export function QuizRunner({ quiz }: { quiz: Quiz }) {
                     {f.label}
                   </dt>
                   <dd className={`mt-0.5 text-sm ${f.disclosed ? 'font-mono text-text' : 'text-text-faint'}`}>
-                    {f.disclosed ? f.value : 'withheld — recover it'}
+                    {f.disclosed ? f.value : d.quiz.withheld}
                   </dd>
                 </div>
               ))}
@@ -475,11 +475,11 @@ export function QuizRunner({ quiz }: { quiz: Quiz }) {
         <div className="rounded-2xl border border-border-subtle bg-bg-raised p-5">
           <div className="flex items-center gap-2">
             <h2 className="text-[0.6875rem] font-medium uppercase tracking-[0.14em] text-text-faint">
-              Ciphertext
+              {d.quiz.ciphertext}
             </h2>
             <span className="h-px flex-1 bg-border-subtle" />
             <span className="text-xs tabular-nums text-text-faint">
-              {q.plaintextLength} characters
+              {q.plaintextLength} {d.quiz.characters}
             </span>
           </div>
           <p className="cipher-text slim-scroll mt-3 max-h-60 overflow-y-auto rounded-lg bg-bg-sunken p-4 text-[0.9375rem] leading-loose text-cipher">
@@ -489,7 +489,7 @@ export function QuizRunner({ quiz }: { quiz: Quiz }) {
 
         <div className="rounded-2xl border border-border-subtle bg-bg-raised p-5">
           <label htmlFor="qans" className="text-[0.6875rem] font-medium uppercase tracking-[0.14em] text-text-faint">
-            Your answer
+            {d.quiz.yourAnswer}
           </label>
           <textarea
             id="qans"
@@ -498,7 +498,7 @@ export function QuizRunner({ quiz }: { quiz: Quiz }) {
             rows={3}
             spellCheck={false}
             onChange={(e) => setAnswer(current, e.target.value)}
-            placeholder="Spacing, punctuation and case are ignored."
+            placeholder={d.quiz.answerPlaceholder}
             className="plain-text mt-2 w-full resize-y rounded-lg border border-border-subtle bg-bg-sunken px-3 py-2.5 text-sm outline-none transition-colors focus:border-accent"
           />
 
@@ -512,14 +512,14 @@ export function QuizRunner({ quiz }: { quiz: Quiz }) {
                   : 'border-border-strong text-text-muted hover:border-accent'
               }`}
             >
-              {flagged.has(current) ? 'Flagged to revisit' : 'Flag to revisit'}
+              {flagged.has(current) ? d.quiz.flagged : d.quiz.flag}
             </button>
             <button
               type="button"
               onClick={() => setShowTheory((s) => !s)}
               className="rounded-lg border border-border-strong px-3 py-1.5 text-xs text-text-muted transition-colors hover:border-accent"
             >
-              {showTheory ? 'Hide the mechanism' : 'How this cipher works'}
+              {showTheory ? d.quiz.hideTheory : d.quiz.showTheory}
             </button>
           </div>
 
@@ -540,7 +540,7 @@ export function QuizRunner({ quiz }: { quiz: Quiz }) {
           disabled={current === 0}
           className="rounded-xl border border-border-strong px-4 py-2.5 text-sm transition-colors hover:border-accent disabled:opacity-40"
         >
-          Previous
+          {d.common.previous}
         </button>
         {current < quiz.questions.length - 1 ? (
           <button
@@ -548,7 +548,7 @@ export function QuizRunner({ quiz }: { quiz: Quiz }) {
             onClick={() => go(current + 1)}
             className="rounded-xl bg-accent px-5 py-2.5 text-sm font-medium text-accent-text transition-colors hover:bg-accent-hover"
           >
-            Next
+            {d.common.next}
           </button>
         ) : (
           <button
@@ -556,7 +556,7 @@ export function QuizRunner({ quiz }: { quiz: Quiz }) {
             onClick={() => setPhase('review')}
             className="rounded-xl bg-accent px-5 py-2.5 text-sm font-medium text-accent-text transition-colors hover:bg-accent-hover"
           >
-            Review and submit
+            {d.quiz.reviewSubmit}
           </button>
         )}
         <button
@@ -564,7 +564,7 @@ export function QuizRunner({ quiz }: { quiz: Quiz }) {
           onClick={() => setPhase('review')}
           className="ml-auto text-sm text-text-muted transition-colors hover:text-text"
         >
-          Finish early
+          {d.quiz.finishEarly}
         </button>
       </div>
     </div>
