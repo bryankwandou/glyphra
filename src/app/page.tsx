@@ -155,6 +155,72 @@ Round trips attempted: ${REVERSIBLE.length * 12}
         </div>
       </section>
 
+      {/* ---------------------------------------------------------------- quiz */}
+      <section className="border-b border-border-subtle bg-bg-sunken">
+        <div className="mx-auto grid max-w-6xl gap-10 px-5 py-16 lg:grid-cols-[1.1fr_1fr] lg:items-center">
+          <div>
+            <p className="text-xs font-medium uppercase tracking-[0.16em] text-accent">
+              Share it with a class
+            </p>
+            <h2 className="mt-3 text-2xl font-semibold tracking-[-0.02em] sm:text-3xl">
+              One code, everyone in, marked automatically
+            </h2>
+            <p className="mt-4 leading-relaxed text-text-muted">
+              Set the length, the difficulty and a time limit, and you get an eight-character code
+              and a link. Participants open it, type a name and start. No account, no sign-up, and
+              nothing recorded about who took it.
+            </p>
+            <p className="mt-4 leading-relaxed text-text-muted">
+              The code carries the whole quiz rather than pointing at a stored one, so the link
+              never expires and two people typing the same code get exactly the same questions. The
+              other side of that is worth knowing: a code cannot be withdrawn once it is out.
+            </p>
+
+            <div className="mt-6 flex flex-wrap gap-3">
+              <Link
+                href="/join"
+                className="rounded-xl bg-accent px-5 py-2.5 text-sm font-medium text-accent-text transition-colors hover:bg-accent-hover"
+              >
+                Join with a code
+              </Link>
+              <Link
+                href="/assess"
+                className="rounded-xl border border-border-strong bg-bg-raised px-5 py-2.5 text-sm font-medium transition-colors hover:border-accent"
+              >
+                Create one
+              </Link>
+            </div>
+          </div>
+
+          <div className="rounded-2xl border border-border-subtle bg-bg-raised p-6 shadow-[var(--shadow-md)]">
+            <div className="text-center">
+              <div className="text-[0.6875rem] uppercase tracking-[0.16em] text-text-faint">
+                Join code
+              </div>
+              <div className="mt-2 font-mono text-4xl font-semibold tracking-[0.12em] text-accent">
+                CY9J-8B59
+              </div>
+            </div>
+
+            <ul className="mt-6 space-y-2.5">
+              {[
+                ['Eight characters', 'checked for typos, so one wrong letter is caught rather than opening a different quiz'],
+                ['Timer and progress', 'a question map, flag-to-revisit, and a review step before submitting'],
+                ['Answers kept locally', 'a tab closed by accident does not cost the attempt'],
+                ['Marked at the end', 'never question by question, which would let someone probe their way to an answer'],
+              ].map(([head, tail]) => (
+                <li key={head} className="flex gap-2.5 text-sm">
+                  <span className="mt-[0.45rem] h-1.5 w-1.5 shrink-0 rounded-full bg-accent" aria-hidden />
+                  <span className="leading-relaxed text-text-muted">
+                    <span className="text-text">{head}</span> — {tail}
+                  </span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        </div>
+      </section>
+
       {/* ---------------------------------------------------------- assessment */}
       <section className="border-b border-border-subtle">
         <div className="mx-auto grid max-w-6xl gap-10 px-5 py-16 lg:grid-cols-[1fr_1.1fr] lg:items-center">

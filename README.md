@@ -50,6 +50,44 @@ The first time it ran it rejected six techniques:
 All six are fixed. Current state: **94 of 94 reversible techniques round-trip exactly**, across 1,128
 round trips per run.
 
+## Shared quizzes
+
+For practice with a group rather than assessment. Set the length, difficulty band and time limit at
+`/assess`, and you get an eight-character join code and a link. Participants open `/join`, type the
+code, and start — no account, and nothing is recorded about who took it.
+
+Every quiz platform hands out a code and resolves it against a database row. There is no database
+here, so **the code carries the quiz**: seed, question count, difficulty band and time limit packed
+into forty bits and rendered as eight characters. Two people typing the same code independently
+rebuild the identical quiz, because the generator is deterministic.
+
+| The trade | |
+|---|---|
+| Buys | A link that cannot expire, nothing to back up, no record of who took it |
+| Costs | A code cannot be withdrawn once shared, and editing means issuing a new one |
+
+Both halves are stated in the interface rather than only here. When marks have to count, use the
+assessment papers below instead.
+
+The participant side follows what the established platforms settled on: a progress bar and question
+map, a wall-clock timer, flag-to-revisit, a review step before submitting, and per-question feedback
+that reveals the message only afterwards. Answers are held in local storage against the code, so a
+tab closed by accident does not cost the attempt.
+
+Marking happens once, over the whole submission — never question by question, which would let
+someone probe a single answer repeatedly and walk their way to it.
+
+```
+npm run verify:quiz
+```
+
+That check caught the codec being wrong on its first write: it emitted its base-32 digits reversed,
+so every code decoded to a *plausible* quiz that was not the one shared. Nothing raised an error;
+participants would simply have answered different questions than the person who sent the link.
+Codes now round-trip 4000/4000 and reject 97.7 per cent of single-character typos. Questions and
+answers are built in one pass, because two loops running side by side would eventually drift and
+mark everyone against the wrong questions while reporting nothing at all.
+
 ## Assessment papers
 
 The practice range is the free half. The half a department cannot get elsewhere is at `/assess`,
@@ -144,6 +182,9 @@ browser holds an opaque blob it cannot open.
 - `POST /api/solution` — the only route that returns a solution. Gated on a verified session
 - `POST /api/credential` — re-marks the answer, then anchors an attestation on Solana devnet
 - `POST /api/assessment` — builds a full set of papers with their keys. Instructor-gated in full
+- `GET /api/quiz?code=` — rebuilds a shared quiz from its code. Open to anyone holding the code,
+  which is the point of a share link; only the questions cross the wire
+- `POST /api/quiz/grade` — marks a whole attempt at once and returns the messages afterwards
 
 The GCM authentication tag also means a student cannot edit a sealed answer and resubmit it.
 
@@ -224,6 +265,11 @@ npm run check-solana
   exactly what you must never ship.
 - **Devnet is periodically reset.** Credentials demonstrate the mechanism; they are not a permanent
   transcript.
+- **A shared quiz cannot be revoked.** The code is the quiz, so there is no row to delete. Anyone
+  who has the code keeps working access to it forever.
+- **Quiz results are not collected.** Participants see their own marks; the instructor does not get
+  a roster. That is a deliberate consequence of storing nothing, and it is the main reason the
+  assessment papers exist alongside this.
 - **Assessment has no gradebook.** It produces papers and a key; recording who scored what is still
   a spreadsheet. That is the next thing worth building, and it is the thing an institution would
   actually pay for.
