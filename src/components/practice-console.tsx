@@ -120,11 +120,15 @@ export function PracticeConsole({
           // Beginner mode draws from what an introductory syllabus actually
           // opens with, checked against a real course: Caesar dominates, then
           // simple substitution, Atbash, affine and the rail fence. Without
-          // this the mode was still free to serve a Quagmire.
+          // this the mode was still free to serve a Quagmire. Simple
+          // substitution is left out despite being mechanical with the key in
+          // hand: copying a 26-letter table across forty characters is tedium
+          // rather than difficulty, and tedium on a first attempt is what makes
+          // people stop.
           techniqueIds: techniqueId
             ? [techniqueId]
             : beginner
-              ? ['caesar', 'atbash', 'rot13', 'affine', 'keyword', 'rail-fence', 'a1z26', 'simple-substitution']
+              ? ['caesar', 'atbash', 'rot13', 'affine', 'keyword', 'rail-fence', 'a1z26']
               : undefined,
           families: families.length ? families : undefined,
           difficulties: difficulties.length ? difficulties : undefined,
