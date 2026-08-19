@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "verify": "npm run verify:ciphers && npm run verify:assessment",
+    "verify": "npm run verify:ciphers && npm run verify:assessment && npm run verify:quiz",
     "check-solana": "tsx --env-file=.env.local scripts/check-solana.ts",
     "// build": "Verification runs first, so a technique that stopped round-tripping stops the deploy rather than reaching a student.",
     "build": "npm run verify && next build",
@@ -15,7 +15,8 @@
     "video:studio": "remotion studio video/src/index.ts",
     "verify:ciphers": "tsx scripts/verify-ciphers.ts",
     "verify:assessment": "tsx scripts/verify-assessment.ts",
-    "video:vertical": "remotion render video/src/index.ts PromoVertical out/glyphra-promo-vertical.mp4"
+    "video:vertical": "remotion render video/src/index.ts PromoVertical out/glyphra-promo-vertical.mp4",
+    "verify:quiz": "tsx scripts/verify-quiz.ts"
   },
   "dependencies": {
     "@solana/web3.js": "^1.98.4",

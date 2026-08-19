@@ -6,6 +6,7 @@ import { CATALOGUE_SIZE } from '@/lib/ciphers';
 const LINKS = [
   { href: '/practice', label: 'Practice' },
   { href: '/catalogue', label: 'Catalogue' },
+  { href: '/join', label: 'Join a quiz' },
   { href: '/credentials', label: 'Credentials' },
 ];
 

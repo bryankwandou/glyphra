@@ -21,6 +21,7 @@ export function SiteFooter() {
           <nav className="grid grid-cols-2 gap-x-12 gap-y-2 text-sm" aria-label="Footer">
             <Link href="/practice" className="text-text-muted hover:text-text">Practice</Link>
             <Link href="/catalogue" className="text-text-muted hover:text-text">Catalogue</Link>
+            <Link href="/join" className="text-text-muted hover:text-text">Join a quiz</Link>
             <Link href="/credentials" className="text-text-muted hover:text-text">Credentials</Link>
             <Link href="/instructor" className="text-text-muted hover:text-text">Instructor</Link>
             <a

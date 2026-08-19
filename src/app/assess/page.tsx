@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { AssessmentBuilder } from '@/components/assessment-builder';
+import { QuizShare } from '@/components/quiz-share';
 import { catalogueSummary } from '@/lib/generator';
 import { currentSession } from '@/lib/auth';
 
@@ -35,6 +36,9 @@ export default async function AssessPage() {
         </div>
       </div>
       <AssessmentBuilder catalogue={catalogueSummary()} />
+      <div className="mx-auto max-w-5xl px-5 pb-12">
+        <QuizShare />
+      </div>
     </>
   );
 }
