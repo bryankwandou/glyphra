@@ -3,6 +3,8 @@ import { LiveCipher } from '@/components/live-cipher';
 import { TECHNIQUES, REVERSIBLE, CATALOGUE_SIZE, FAMILY_LABEL } from '@/lib/ciphers';
 import type { Family } from '@/lib/ciphers/types';
 import { t } from '@/lib/i18n';
+import { Reveal } from '@/components/reveal';
+import { DecodeHeading } from '@/components/decode-heading';
 
 function familyCounts() {
   const counts = new Map<Family, number>();
@@ -76,7 +78,7 @@ export default async function Home() {
       <section className="border-b border-border-subtle">
         <div className="mx-auto max-w-6xl px-5 py-16">
           <h2 className="text-2xl font-semibold tracking-[-0.02em] sm:text-3xl">
-            {d.mechanicsH}
+            <DecodeHeading text={d.mechanicsH} />
           </h2>
           <p className="mt-3 max-w-2xl text-text-muted">
             {d.mechanicsP}
@@ -99,15 +101,16 @@ export default async function Home() {
                 h: d.step3H,
                 p: d.step3P,
               },
-            ].map((s) => (
+            ].map((s, i) => (
+              <Reveal key={s.n} delay={i * 90}>
               <li
-                key={s.n}
-                className="rounded-2xl border border-border-subtle bg-bg-raised p-6 transition-colors hover:border-border-strong"
+                className="h-full rounded-2xl border border-border-subtle bg-bg-raised p-6 transition-colors hover:border-border-strong"
               >
                 <span className="text-xs font-medium tabular-nums text-accent">{s.n}</span>
                 <h3 className="mt-3 font-medium tracking-[-0.01em]">{s.h}</h3>
                 <p className="mt-2 text-sm leading-relaxed text-text-muted">{s.p}</p>
               </li>
+              </Reveal>
             ))}
           </ol>
         </div>
@@ -118,7 +121,7 @@ export default async function Home() {
         <div className="mx-auto grid max-w-6xl gap-10 px-5 py-16 lg:grid-cols-2 lg:items-center">
           <div>
             <h2 className="text-2xl font-semibold tracking-[-0.02em] sm:text-3xl">
-              {d.correctH}
+              <DecodeHeading text={d.correctH} />
             </h2>
             <p className="mt-4 leading-relaxed text-text-muted">
               {d.correctP1}
@@ -154,7 +157,7 @@ Round trips attempted: ${REVERSIBLE.length * 12}
               {d.quizEyebrow}
             </p>
             <h2 className="mt-3 text-2xl font-semibold tracking-[-0.02em] sm:text-3xl">
-              {d.quizH}
+              <DecodeHeading text={d.quizH} />
             </h2>
             <p className="mt-4 leading-relaxed text-text-muted">
               {d.quizP1}
