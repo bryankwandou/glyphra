@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { AssessmentBuilder } from '@/components/assessment-builder';
 import { QuizShare } from '@/components/quiz-share';
+import { currentAccount } from '@/lib/accounts';
 import { catalogueSummary } from '@/lib/generator';
 import { currentSession } from '@/lib/auth';
 
@@ -37,7 +38,7 @@ export default async function AssessPage() {
       </div>
       <AssessmentBuilder catalogue={catalogueSummary()} />
       <div className="mx-auto max-w-5xl px-5 pb-12">
-        <QuizShare />
+        <QuizShare signedIn={Boolean(await currentAccount())} />
       </div>
     </>
   );

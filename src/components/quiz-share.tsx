@@ -5,6 +5,7 @@ import { encodeQuizCode, randomQuizSeed } from '@/lib/quiz-code';
 import type { Difficulty } from '@/lib/ciphers/types';
 import { useT } from '@/lib/i18n/client';
 import { QrCode } from './qr-code';
+import { QuizClaim } from './quiz-claim';
 
 /**
  * Builds a share code for a quiz.
@@ -13,7 +14,7 @@ import { QrCode } from './qr-code';
  * is no row to create, so there is nothing to ask a server for. Changing a
  * setting simply produces a different code.
  */
-export function QuizShare() {
+export function QuizShare({ signedIn = false }: { signedIn?: boolean }) {
   const d = useT().share;
   const [questions, setQuestions] = useState(6);
   const [low, setLow] = useState<Difficulty>(1);
@@ -125,6 +126,8 @@ export function QuizShare() {
             {d.scanNote}
           </p>
         </div>
+
+        <QuizClaim code={code} signedIn={signedIn} />
 
         <div className="mt-5 flex flex-wrap justify-center gap-2">
           <button

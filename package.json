@@ -17,9 +17,12 @@
     "verify:assessment": "tsx scripts/verify-assessment.ts",
     "video:vertical": "remotion render video/src/index.ts PromoVertical out/glyphra-promo-vertical.mp4",
     "verify:quiz": "tsx scripts/verify-quiz.ts",
-    "verify:filters": "tsx scripts/verify-filters.ts"
+    "verify:filters": "tsx scripts/verify-filters.ts",
+    "migrate": "tsx --conditions=react-server --env-file=.env.local scripts/migrate.ts",
+    "verify:db": "tsx --conditions=react-server --env-file=.env.local scripts/verify-db.ts"
   },
   "dependencies": {
+    "@neondatabase/serverless": "^1.1.0",
     "@solana/web3.js": "^1.98.4",
     "@types/qrcode": "^1.5.6",
     "bs58": "^6.0.0",

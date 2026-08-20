@@ -79,6 +79,44 @@ wrong method. They stay in English until someone who knows the material writes t
 Every example on that page came out of the engine from the same message and was confirmed to decode
 back to it before it was written down.
 
+## Accounts, access rules, and a gradebook
+
+Three things were refused here for a long time on the grounds that they need server state, and that
+was true: a quiz that closes once somebody solves it, a quiz only its author may attempt, and any
+record of who scored what. A Postgres database (Neon) now backs them.
+
+**What the database does not hold: the quizzes.** A join code still carries its own quiz in forty
+bits, so a code with no row is a perfectly valid open quiz. Every link handed out before any of this
+existed keeps working untouched, and losing the database would cost the results and the access rules
+but not one question.
+
+| Mode | Who may attempt it | Closes |
+|---|---|---|
+| Open | Anyone with the code | Never — this is also how an unclaimed code behaves |
+| Close on a full score | Anyone with the code | The moment somebody answers everything correctly |
+| Only me | The signed-in owner alone | When the owner says so |
+
+Claiming a code is optional. Signing in adds control on top of a code that already works; it takes
+nothing away from one left unclaimed.
+
+Rules are enforced on the server, at both the door and the marking endpoint. Checking only when the
+quiz opens would leave them enforced by the interface, and anybody willing to post to the endpoint
+directly would walk straight past.
+
+```
+npm run migrate      # apply the schema; every statement is IF NOT EXISTS
+npm run verify:db    # 21 access rules, against a real database
+```
+
+That check found a real defect on its first run. `closeOnPerfect` closed whatever it was pointed at
+and left "was this actually a full score?" to the caller — so the rule lived at one call site rather
+than in the rule. A 50 per cent attempt closed the quiz. The database now confirms a full-marks
+attempt is on record before it will close anything.
+
+Password hashing is scrypt from the standard library, salted per account. bcrypt or argon2 would be
+the better-studied choice and either is a reasonable upgrade; scrypt is here because it needs no
+native module on a serverless runtime.
+
 ## Shared quizzes
 
 For practice with a group rather than assessment. Set the length, difficulty band and time limit at
@@ -271,6 +309,7 @@ npm run dev
 | `GROQ_API_KEY` | No | Enables model-written messages |
 | `SOLANA_ISSUER_SECRET` | No | Base58 64-byte secret key, or 32-byte hex seed. Enables credentials |
 | `SOLANA_RPC_URL` | No | Defaults to the public devnet endpoint |
+| `DATABASE_URL` | No | Postgres. Enables accounts, access rules and the gradebook |
 
 Language is a per-visitor cookie (`glyphra_lang`), so no configuration is involved.
 
@@ -298,6 +337,13 @@ npm run check-solana
   transcript.
 - **A shared quiz cannot be revoked.** The code is the quiz, so there is no row to delete. Anyone
   who has the code keeps working access to it forever.
+- **Without `DATABASE_URL` there are no accounts, no restricted modes and no gradebook.**
+  Everything else — practice, the workbench, assessment papers, open quizzes — is a pure
+  function of a seed and works with no storage at all. A missing database degrades the
+  product rather than breaking it.
+- **An unclaimed quiz code still cannot be revoked**, and its results are still not
+  collected. That is the trade for a link that never expires. Claim the code if the marks
+  have to count.
 - **Quiz results are not collected.** Participants see their own marks; the instructor does not get
   a roster. That is a deliberate consequence of storing nothing, and it is the main reason the
   assessment papers exist alongside this.
