@@ -2,7 +2,8 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
-import { useT } from '@/lib/i18n/client';
+import { useT, useLocale } from '@/lib/i18n/client';
+import { Leaderboard } from './leaderboard';
 
 interface Question {
   number: number;
@@ -53,9 +54,18 @@ function clockFace(seconds: number): string {
   return `${m}:${String(s).padStart(2, '0')}`;
 }
 
-export function QuizRunner({ quiz }: { quiz: Quiz }) {
+export function QuizRunner({
+  quiz,
+  mode = 'open',
+  title = null,
+}: {
+  quiz: Quiz;
+  mode?: 'open' | 'first_correct' | 'host_only';
+  title?: string | null;
+}) {
   const storageKey = `glyphra:quiz:${quiz.code}`;
   const d = useT();
+  const isID = useLocale() === 'id';
 
   const [phase, setPhase] = useState<Phase>('lobby');
   const [name, setName] = useState('');
@@ -190,6 +200,22 @@ export function QuizRunner({ quiz }: { quiz: Quiz }) {
           <p className="text-[0.6875rem] font-medium uppercase tracking-[0.16em] text-text-faint">
             {d.quiz.eyebrow}
           </p>
+
+          {title && (
+            <p className="mt-1 text-sm text-text-muted">{title}</p>
+          )}
+
+          {mode !== 'open' && (
+            <p className="mt-3 rounded-lg border border-border-subtle bg-bg-sunken px-3 py-2 text-xs leading-relaxed text-text-muted">
+              {mode === 'first_correct'
+                ? isID
+                  ? 'Kuis ini tertutup otomatis begitu ada yang menjawab semuanya benar. Satu orang pertama saja.'
+                  : 'This one closes the moment somebody answers everything correctly. First solver only.'
+                : isID
+                  ? 'Kuis ini dikunci untuk pembuatnya saja.'
+                  : 'This one is restricted to the person who set it.'}
+            </p>
+          )}
           <h1 className="mt-2 font-mono text-3xl font-semibold tracking-[-0.02em] text-accent">
             {quiz.code}
           </h1>
@@ -289,6 +315,8 @@ export function QuizRunner({ quiz }: { quiz: Quiz }) {
             </button>
           </div>
         </div>
+
+        <Leaderboard code={result.code} you={result.name ?? ''} />
 
         <h2 className="mt-10 text-lg font-medium tracking-[-0.01em]">{d.quiz.whereMarks}</h2>
         <ol className="mt-4 space-y-3">

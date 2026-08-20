@@ -19,7 +19,8 @@
     "verify:quiz": "tsx scripts/verify-quiz.ts",
     "verify:filters": "tsx scripts/verify-filters.ts",
     "migrate": "tsx --conditions=react-server --env-file=.env.local scripts/migrate.ts",
-    "verify:db": "tsx --conditions=react-server --env-file=.env.local scripts/verify-db.ts"
+    "verify:db": "tsx --conditions=react-server --env-file=.env.local scripts/verify-db.ts",
+    "verify:doors": "bash scripts/verify-doors.sh"
   },
   "dependencies": {
     "@neondatabase/serverless": "^1.1.0",
