@@ -1,6 +1,8 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { currentLocale } from '@/lib/i18n';
+import { TutorialDemo } from '@/components/tutorial-demo';
+import { getTechnique } from '@/lib/ciphers';
 import {
   INTRO, KINDS, KINDS_TITLE, KINDS_LEAD, KINDS_NOTE,
   FAMILIES, FAMILIES_TITLE, FAMILIES_LEAD,
@@ -157,6 +159,25 @@ export default async function TutorialPage() {
                   {f.example.output}
                 </p>
               </div>
+
+              {f.demo && (() => {
+                const t = getTechnique(f.demo.techniqueId);
+                if (!t) return null;
+                return (
+                  <TutorialDemo
+                    techniqueId={f.demo.techniqueId}
+                    initialKey={f.demo.key}
+                    initialText={PLAINTEXT}
+                    fields={t.keySpec.map((k) => ({
+                      name: k.name,
+                      kind: k.kind,
+                      label: k.label,
+                      min: 'min' in k ? k.min : undefined,
+                      max: 'max' in k ? k.max : undefined,
+                    }))}
+                  />
+                );
+              })()}
 
               <p className="mt-4 flex gap-2.5 text-sm leading-relaxed text-text-muted">
                 <span className="mt-[0.4rem] h-1.5 w-1.5 shrink-0 rounded-full bg-accent" aria-hidden />

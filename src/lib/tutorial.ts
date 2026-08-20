@@ -50,6 +50,17 @@ export interface FamilyGuide {
     key: string;
     output: string;
   };
+  /**
+   * The same example, wired to the live engine so it can be changed.
+   *
+   * Absent where a live control would teach nothing — RSA needs its whole
+   * parameter set to make sense, and steganography's whole point is that the
+   * output looks like ordinary prose.
+   */
+  demo?: {
+    techniqueId: string;
+    key: Record<string, string>;
+  };
   /** How to attack it — a cipher taught without its break is half taught. */
   breaks: L;
   /** Why a teacher would set this one. */
@@ -165,6 +176,7 @@ export const FAMILIES: FamilyGuide[] = [
       id: 'Frekuensi huruf tetap bertahan. Kalau E adalah huruf tersering di plainteks, huruf pengganti E menjadi huruf tersering di cipherteks. Kata yang berulang tetap terlihat berulang.',
     },
     example: { technique: 'Caesar, shift 3', key: 'shift = 3', output: 'PHHWP HDWGD ZQ' },
+    demo: { techniqueId: 'caesar', key: { shift: '3' } },
     breaks: {
       en: 'Frequency analysis, known since the ninth century. A Caesar has only 25 possible keys, so you can simply try all of them by hand in a few minutes.',
       id: 'Analisis frekuensi, sudah dikenal sejak abad kesembilan. Caesar hanya punya 25 kemungkinan kunci, jadi Anda bisa mencoba semuanya dengan tangan dalam beberapa menit.',
@@ -188,6 +200,7 @@ export const FAMILIES: FamilyGuide[] = [
       id: 'Frekuensinya merata — tidak ada huruf yang mendominasi. Huruf plainteks yang sama menjadi huruf cipherteks berbeda di posisi berbeda, sehingga trik yang mematahkan keluarga sebelumnya tidak lagi mempan.',
     },
     example: { technique: 'Vigenère', key: 'keyword = LEMON', output: 'XIQHZ PEFRN HR' },
+    demo: { techniqueId: 'vigenere', key: { keyword: 'LEMON' } },
     breaks: {
       en: 'Find the key length first — repeated ciphertext fragments sit a multiple of the key length apart (Kasiski, 1863). Once you know the length, you have several Caesars side by side and you are back to frequency analysis.',
       id: 'Cari panjang kuncinya lebih dulu — potongan cipherteks yang berulang terpisah sejauh kelipatan panjang kunci (Kasiski, 1863). Begitu panjangnya diketahui, yang tersisa hanyalah beberapa Caesar berdampingan, dan Anda kembali ke analisis frekuensi.',
@@ -211,6 +224,7 @@ export const FAMILIES: FamilyGuide[] = [
       id: 'Panjang keluarannya genap, dan analisis frekuensi huruf tunggal tidak memberi apa-apa karena satuannya bukan lagi huruf. Playfair tidak pernah menghasilkan pasangan huruf kembar.',
     },
     example: { technique: 'Playfair', key: 'keyword = MONARCHY', output: 'CLKLC LRSBR NY' },
+    demo: { techniqueId: 'playfair', key: { keyword: 'MONARCHY' } },
     breaks: {
       en: 'Frequency analysis on pairs instead of letters, which needs far more ciphertext. Hill falls quickly to a known-plaintext attack: enough matched pairs and the key matrix comes out of simple linear algebra.',
       id: 'Analisis frekuensi pada pasangan huruf, bukan huruf tunggal, yang menuntut cipherteks jauh lebih banyak. Hill cepat jatuh oleh serangan known-plaintext: dengan cukup pasangan yang diketahui, matriks kuncinya keluar lewat aljabar linear biasa.',
@@ -234,6 +248,7 @@ export const FAMILIES: FamilyGuide[] = [
       id: 'Petunjuk paling jelas: frekuensi hurufnya persis seperti teks biasa, tetapi tidak ada yang terbaca. Kalau distribusi hurufnya wajar tapi tak terbaca, hurufnya dipindahkan, bukan diganti.',
     },
     example: { technique: 'Rail fence', key: 'rails = 3', output: 'MMDET ETANE AW' },
+    demo: { techniqueId: 'rail-fence', key: { rails: '3' } },
     breaks: {
       en: 'Anagramming, and the key space is often tiny — a rail fence with a message this short has only a handful of plausible rail counts to try.',
       id: 'Penyusunan ulang huruf, dan ruang kuncinya sering sangat kecil — rail fence dengan pesan sependek ini hanya punya segelintir kemungkinan jumlah rel untuk dicoba.',
@@ -257,6 +272,7 @@ export const FAMILIES: FamilyGuide[] = [
       id: 'Substitusi dan transposisi hadir sekaligus. Satu huruf plainteks kini memengaruhi dua huruf keluaran yang terpisah, sehingga tidak ada satu pun serangan klasik yang mempan sendirian.',
     },
     example: { technique: 'Bifid', key: 'keyword = CIPHER, period = 5', output: 'GHMZT IQFDQ XF' },
+    demo: { techniqueId: 'bifid', key: { keyword: 'CIPHER', period: '5' } },
     breaks: {
       en: 'The period has to be recovered first, then the square. ADFGVX was read by French cryptanalysts during the First World War, but it took a team and a great deal of traffic.',
       id: 'Periodenya harus ditemukan lebih dulu, baru kotaknya. ADFGVX berhasil dibaca kriptanalis Prancis pada Perang Dunia Pertama, tetapi itu menuntut satu tim dan lalu lintas pesan yang sangat banyak.',
@@ -280,6 +296,7 @@ export const FAMILIES: FamilyGuide[] = [
       id: 'Himpunan karakter terbatas dengan struktur yang kentara — Base64 berakhir dengan deretan tanda sama dengan, heksadesimal hanya memakai enam belas simbol, Morse berupa titik dan garis.',
     },
     example: { technique: 'Base64', key: 'no key', output: 'TUVFVCBNRSBBVCBEQVdO' },
+    demo: { techniqueId: 'base64', key: {} },
     breaks: {
       en: 'There is nothing to break. Recognise the alphabet and reverse it. The exercise is identification, not cryptanalysis.',
       id: 'Tidak ada yang perlu dipecahkan. Kenali alfabetnya lalu balikkan. Latihannya adalah identifikasi, bukan kriptanalisis.',
@@ -303,6 +320,7 @@ export const FAMILIES: FamilyGuide[] = [
       id: 'Keluarannya berupa byte, biasanya ditampilkan sebagai heksadesimal, dan tampak acak secara statistik. Tidak ada struktur huruf yang tersisa untuk dianalisis.',
     },
     example: { technique: 'Repeating-key XOR', key: 'key = KEY', output: '06001c1f65140e65181f651d0a1217' },
+    demo: { techniqueId: 'xor-repeating', key: { key: 'KEY' } },
     breaks: {
       en: 'AES and ChaCha20 are not broken by hand and are not meant to be. Repeating-key XOR is in the catalogue precisely because it looks modern and falls to the same key-length trick as Vigenère.',
       id: 'AES dan ChaCha20 tidak dipecahkan dengan tangan dan memang tidak ditujukan untuk itu. XOR berkunci berulang ada di katalog justru karena ia tampak modern padahal jatuh oleh trik panjang-kunci yang sama seperti Vigenère.',
@@ -349,6 +367,7 @@ export const FAMILIES: FamilyGuide[] = [
       id: 'Panjangnya selalu sama berapa pun panjang masukannya. SHA-256 selalu 64 karakter heksadesimal, baik Anda mem-hash satu kata maupun satu buku penuh.',
     },
     example: { technique: 'SHA-256', key: 'no key', output: 'aabed343de86a8ba6b2adbc4d7dfebbc…' },
+    demo: { techniqueId: 'sha256', key: {} },
     breaks: {
       en: 'Not reversed — collided. MD5 and SHA-1 are broken in the sense that two different inputs can be made to share a hash, which destroys their use as a signature.',
       id: 'Bukan dibalik — melainkan ditabrakkan. MD5 dan SHA-1 disebut patah dalam arti dua masukan berbeda bisa dibuat berbagi hash yang sama, dan itu menghancurkan kegunaannya sebagai tanda tangan.',
