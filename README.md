@@ -36,6 +36,10 @@ and avalanche on a single-character change.
 
 It runs before every build. A failure stops the build.
 
+Four gates run on every build and all of them are hermetic. The two that touch a network — the
+database rules and the three-entrance check — are run by hand, because a build should not fail
+because a network hop did.
+
 The first time it ran it rejected six techniques:
 
 | Technique | Defect |
@@ -104,9 +108,22 @@ quiz opens would leave them enforced by the interface, and anybody willing to po
 directly would walk straight past.
 
 ```
-npm run migrate      # apply the schema; every statement is IF NOT EXISTS
-npm run verify:db    # 21 access rules, against a real database
+npm run migrate       # apply the schema; every statement is IF NOT EXISTS
+npm run verify:db     # 21 access rules, against a real database
+npm run verify:doors  # all three entrances, against a running site
 ```
+
+`verify:doors` exists because the rules were once enforced at two entrances out of three. The fetch
+endpoint and the marking endpoint both checked the policy, so restriction looked complete — but the
+`/q/[code]` page rendered every question server-side without asking, which meant a host-only quiz
+refused strangers at the API while handing them the whole thing through the page people actually
+click. The check does not trust status codes for that page: a page can return 200 and still leak, so
+it greps the body for a ciphertext block and asserts the questions are absent.
+
+Standings are shown to participants once an attempt is submitted, and are narrower than the owner's
+gradebook on purpose: rank, name, score. No timestamps, no attempt counts. Seeing where you placed
+is motivating; publishing somebody's five failed attempts to the rest of a class is not, and both
+live in the same table. One row per person at their best score, so retrying cannot fill the board.
 
 That check found a real defect on its first run. `closeOnPerfect` closed whatever it was pointed at
 and left "was this actually a full score?" to the caller — so the rule lived at one call site rather
