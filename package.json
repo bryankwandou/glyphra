@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "verify": "npm run verify:ciphers && npm run verify:assessment && npm run verify:quiz && npm run verify:filters",
+    "verify": "npm run verify:ciphers && npm run verify:assessment && npm run verify:quiz && npm run verify:filters && npm run verify:problems",
     "check-solana": "tsx --env-file=.env.local scripts/check-solana.ts",
     "// build": "Verification runs first, so a technique that stopped round-tripping stops the deploy rather than reaching a student.",
     "build": "npm run verify && next build",
@@ -20,7 +20,9 @@
     "verify:filters": "tsx scripts/verify-filters.ts",
     "migrate": "tsx --conditions=react-server --env-file=.env.local scripts/migrate.ts",
     "verify:db": "tsx --conditions=react-server --env-file=.env.local scripts/verify-db.ts",
-    "verify:doors": "bash scripts/verify-doors.sh"
+    "verify:doors": "bash scripts/verify-doors.sh",
+    "verify:problems": "tsx --conditions=react-server scripts/verify-problems.ts",
+    "verify:flow": "tsx --conditions=react-server scripts/verify-problem-flow.ts"
   },
   "dependencies": {
     "@neondatabase/serverless": "^1.1.0",

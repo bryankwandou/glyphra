@@ -1,6 +1,6 @@
 import { generateChallenge, gradeAnswer } from './generator';
 import type { PublicChallenge } from './generator';
-import { decodeQuizCode, difficultyBand, type QuizConfig } from './quiz-code';
+import { decodeQuizCode, difficultyBand, type QuizConfig, canonicalQuizCode } from './quiz-code';
 import type { Difficulty } from './ciphers/types';
 
 /**
@@ -46,9 +46,15 @@ function slotDifficulty(config: QuizConfig, index: number): Difficulty[] {
  * participant is scored wrongly, and nothing anywhere reports an error. One
  * pass, one source of truth.
  */
-function assemble(code: string): { config: QuizConfig; items: { question: QuizQuestion; answer: string }[] } | null {
+function assemble(code: string): { canonical: string; config: QuizConfig; items: { question: QuizQuestion; answer: string }[] } | null {
   const config = decodeQuizCode(code);
   if (!config) return null;
+
+  // Every caller keys something off this — the policy row, the storage key in
+  // the browser, the row in the gradebook. It has to be the same string no
+  // matter how the code was typed.
+  const canonical = canonicalQuizCode(code);
+  if (!canonical) return null;
 
   const items: { question: QuizQuestion; answer: string }[] = [];
   const used = new Set<string>();
@@ -75,7 +81,7 @@ function assemble(code: string): { config: QuizConfig; items: { question: QuizQu
     });
   }
 
-  return { config, items };
+  return { canonical, config, items };
 }
 
 export function buildQuiz(code: string): Quiz | null {
@@ -83,7 +89,7 @@ export function buildQuiz(code: string): Quiz | null {
   if (!built) return null;
 
   return {
-    code,
+    code: built.canonical,
     config: built.config,
     questions: built.items.map((i) => i.question),
     timeLimitSeconds: built.config.minutes > 0 ? built.config.minutes * 60 : null,
@@ -135,7 +141,7 @@ export function markQuiz(code: string, submitted: string[]): QuizResult | null {
   const correct = results.filter((r) => r.correct).length;
 
   return {
-    code,
+    code: built.canonical,
     total: results.length,
     correct,
     score: results.length ? Math.round((correct / results.length) * 100) : 0,

@@ -4,6 +4,9 @@ import { redirect } from 'next/navigation';
 import { AssessmentBuilder } from '@/components/assessment-builder';
 import { QuizShare } from '@/components/quiz-share';
 import { currentAccount } from '@/lib/accounts';
+import { ProblemMaker } from '@/components/problem-maker';
+import { REVERSIBLE } from '@/lib/ciphers';
+import { PROBLEM_ROSTER } from '@/lib/problem-code';
 import { catalogueSummary } from '@/lib/generator';
 import { currentSession } from '@/lib/auth';
 
@@ -14,6 +17,7 @@ export const metadata: Metadata = {
 };
 
 export default async function AssessPage() {
+  const signedIn = Boolean(await currentAccount());
   const session = await currentSession();
   if (!session) redirect('/instructor');
 
@@ -38,7 +42,19 @@ export default async function AssessPage() {
       </div>
       <AssessmentBuilder catalogue={catalogueSummary()} />
       <div className="mx-auto max-w-5xl px-5 pb-12">
-        <QuizShare signedIn={Boolean(await currentAccount())} />
+        <QuizShare signedIn={signedIn} />
+
+        <div className="mt-8">
+          <ProblemMaker
+            signedIn={signedIn}
+            techniques={REVERSIBLE.filter((t) => PROBLEM_ROSTER.includes(t.id)).map((t) => ({
+              id: t.id,
+              name: t.name,
+              family: t.family,
+              difficulty: t.difficulty,
+            }))}
+          />
+        </div>
       </div>
     </>
   );

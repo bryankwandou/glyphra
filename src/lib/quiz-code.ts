@@ -138,3 +138,26 @@ export function difficultyBand(config: QuizConfig): Difficulty[] {
 export function randomQuizSeed(): number {
   return Math.floor(Math.random() * 0x100000);
 }
+
+/**
+ * The one spelling of a code that everything else keys on.
+ *
+ * `decodeQuizCode` has always been forgiving about spacing, case and the O/0
+ * and I/1 substitutions people make, which is right — a code read off a
+ * projector should still work. What was missing is the other half: turning all
+ * those spellings back into a single canonical one.
+ *
+ * Without it the forgiveness became a hole. Access rules are stored against a
+ * code, so `qps9-6a55` and `QPS96A55` looked up nothing while `QPS9-6A55` found
+ * the row — the same quiz, but a restricted one served freely to anybody who
+ * typed it in lower case. The quiz itself was never wrong, because the seed
+ * decodes identically either way; only the rules attached to it went missing.
+ *
+ * Returns null for anything that is not a real code, so callers get one check
+ * rather than two.
+ */
+export function canonicalQuizCode(input: string): string | null {
+  const config = decodeQuizCode(input);
+  if (!config) return null;
+  return encodeQuizCode(config);
+}

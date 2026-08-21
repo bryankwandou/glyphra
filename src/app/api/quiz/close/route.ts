@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { canonicalQuizCode } from '@/lib/quiz-code';
 import { currentAccount } from '@/lib/accounts';
 import { closeQuiz, reopenQuiz, hasDb } from '@/lib/db';
 
@@ -13,7 +14,7 @@ export async function POST(request: Request) {
   if (!account) return NextResponse.json({ error: 'Sign in first.' }, { status: 401 });
 
   const body = await request.json().catch(() => ({}));
-  const code = String(body.code ?? '').toUpperCase();
+  const code = canonicalQuizCode(String(body.code ?? '')) ?? '';
   const reopen = body.reopen === true;
 
   const ok = reopen

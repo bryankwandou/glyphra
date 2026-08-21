@@ -211,3 +211,110 @@ export async function closeOnPerfect(code: string, participant: string): Promise
       )
   `;
 }
+
+/* ----------------------------------------------------------------- problems */
+
+export interface ProblemRow {
+  code: string;
+  ownerId: string;
+  techniqueId: string;
+  label: string | null;
+  disclose: boolean;
+  solvedAt: string | null;
+  solvedBy: string | null;
+  attempts: number;
+  createdAt: string;
+}
+
+function toProblem(r: Record<string, unknown>): ProblemRow {
+  return {
+    code: String(r.code),
+    ownerId: String(r.owner_id),
+    techniqueId: String(r.technique_id),
+    label: r.label === null ? null : String(r.label),
+    disclose: Boolean(r.disclose),
+    solvedAt: r.solved_at ? new Date(r.solved_at as string).toISOString() : null,
+    solvedBy: r.solved_by === null ? null : String(r.solved_by),
+    attempts: Number(r.attempts ?? 0),
+    createdAt: new Date(r.created_at as string).toISOString(),
+  };
+}
+
+export async function problemRow(code: string): Promise<ProblemRow | null> {
+  if (!hasDb()) return null;
+  const rows = (await db()`
+    SELECT code, owner_id, technique_id, label, disclose, solved_at, solved_by, attempts, created_at
+    FROM problems WHERE code = ${code} LIMIT 1
+  `) as Record<string, unknown>[];
+  return rows.length ? toProblem(rows[0]) : null;
+}
+
+export async function createProblem(
+  code: string,
+  ownerId: string,
+  techniqueId: string,
+  disclose: boolean,
+  label: string | null,
+): Promise<ProblemRow | null> {
+  if (!hasDb()) return null;
+  await db()`
+    INSERT INTO problems (code, owner_id, technique_id, label, disclose)
+    VALUES (${code}, ${ownerId}, ${techniqueId}, ${label}, ${disclose})
+    ON CONFLICT (code) DO UPDATE
+      SET label = EXCLUDED.label
+      WHERE problems.owner_id = ${ownerId}
+  `;
+  return problemRow(code);
+}
+
+/**
+ * Record an attempt, and close the problem if this one solved it.
+ *
+ * Both halves in one statement pair rather than a read-then-write, because two
+ * people submitting the right answer within the same second would otherwise
+ * both read "unsolved" and the second would overwrite the first. The UPDATE
+ * carries `solved_at IS NULL` in its WHERE clause, so exactly one of them wins
+ * and it is whoever the database serialises first.
+ */
+export async function recordProblemAttempt(
+  code: string,
+  participant: string,
+  correct: boolean,
+): Promise<{ solvedByYou: boolean; alreadySolved: boolean }> {
+  if (!hasDb()) return { solvedByYou: false, alreadySolved: false };
+
+  await db()`UPDATE problems SET attempts = attempts + 1 WHERE code = ${code}`;
+
+  if (!correct) {
+    const row = await problemRow(code);
+    return { solvedByYou: false, alreadySolved: !!row?.solvedAt };
+  }
+
+  const won = (await db()`
+    UPDATE problems SET solved_at = now(), solved_by = ${participant}
+    WHERE code = ${code} AND solved_at IS NULL
+    RETURNING code
+  `) as unknown[];
+
+  return { solvedByYou: won.length > 0, alreadySolved: won.length === 0 };
+}
+
+export async function ownedProblems(ownerId: string): Promise<ProblemRow[]> {
+  if (!hasDb()) return [];
+  const rows = (await db()`
+    SELECT code, owner_id, technique_id, label, disclose, solved_at, solved_by, attempts, created_at
+    FROM problems WHERE owner_id = ${ownerId}
+    ORDER BY created_at DESC LIMIT 200
+  `) as Record<string, unknown>[];
+  return rows.map(toProblem);
+}
+
+export async function reopenProblem(code: string, ownerId: string): Promise<boolean> {
+  if (!hasDb()) return false;
+  const rows = (await db()`
+    UPDATE problems SET solved_at = NULL, solved_by = NULL
+    WHERE code = ${code} AND owner_id = ${ownerId}
+    RETURNING code
+  `) as unknown[];
+  return rows.length > 0;
+}

@@ -57,6 +57,27 @@ chk "mark, stranger"      "$(curl -s -b stranger.jar -o /dev/null -w '%{http_cod
 OWNSEE=$(curl -s -b owner.jar --max-time 45 "$B/q/$CODE" | grep -ci "Ciphertext")
 chk "page, owner does see it"          "$([ "$OWNSEE" -ge 1 ] && echo 1 || echo 0)" "1"
 
+# --- the same code, spelled differently --------------------------------------
+#
+# decodeQuizCode is forgiving about case, spacing and the O/0 and I/1 swaps
+# people make reading a code off a projector, which is right. What was missing
+# was the other half: folding every spelling back to one canonical string.
+# Access rules are stored against a code, so `qps9-6a55` and `QPS96A55` looked up
+# nothing while `QPS9-6A55` found the row — the same restricted quiz served
+# freely to anybody who typed it in lower case.
+
+echo
+echo "  the same code, spelled differently"
+for V in "cy9j-8b59" "CY9J8B59" "cy9j8b59" "CY9J 8B59"; do
+  ENC=$(printf '%s' "$V" | sed 's/ /%20/g')
+  chk "api refuses '$V'"  "$(curl -s -b stranger.jar -o /dev/null -w '%{http_code}' --max-time 45 "$B/api/quiz?code=$ENC")" "403"
+done
+for V in "cy9j-8b59" "CY9J8B59"; do
+  LK=$(curl -s -b stranger.jar --max-time 45 "$B/q/$V" | grep -ci "Ciphertext")
+  chk "page leaks nothing for '$V'" "$LK" "0"
+done
+chk "mark refuses a lower-case code" "$(curl -s -b stranger.jar -o /dev/null -w '%{http_code}' --max-time 45 -X POST "$B/api/quiz/grade" -H 'Content-Type: application/json' -d "{\"code\":\"cy9j-8b59\",\"answers\":[\"x\"],\"name\":\"S\"}")" "403"
+
 # --- closed: all three doors -------------------------------------------------
 curl -s -b owner.jar --max-time 45 -X POST "$B/api/quiz/claim" \
   -H "Content-Type: application/json" -d "{\"code\":\"$CODE\",\"mode\":\"open\"}" -o /dev/null

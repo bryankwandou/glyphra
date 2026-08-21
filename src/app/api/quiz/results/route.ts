@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { canonicalQuizCode } from '@/lib/quiz-code';
 import { currentAccount } from '@/lib/accounts';
 import { attemptsFor, quizPolicy, hasDb } from '@/lib/db';
 
@@ -19,7 +20,7 @@ export async function GET(request: Request) {
   const account = await currentAccount();
   if (!account) return NextResponse.json({ error: 'Sign in first.' }, { status: 401 });
 
-  const code = (new URL(request.url).searchParams.get('code') ?? '').toUpperCase();
+  const code = canonicalQuizCode(new URL(request.url).searchParams.get('code') ?? '') ?? '';
   const policy = await quizPolicy(code);
 
   if (!policy) return NextResponse.json({ error: 'No such quiz.' }, { status: 404 });

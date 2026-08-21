@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { canonicalQuizCode } from '@/lib/quiz-code';
 import { attemptsFor, quizPolicy, hasDb } from '@/lib/db';
 
 export const runtime = 'nodejs';
@@ -18,7 +19,7 @@ export const runtime = 'nodejs';
 export async function GET(request: Request) {
   if (!hasDb()) return NextResponse.json({ available: false, rows: [] });
 
-  const code = (new URL(request.url).searchParams.get('code') ?? '').toUpperCase();
+  const code = canonicalQuizCode(new URL(request.url).searchParams.get('code') ?? '') ?? '';
   const policy = await quizPolicy(code);
   if (!policy) return NextResponse.json({ available: false, rows: [] });
 

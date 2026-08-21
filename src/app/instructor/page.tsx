@@ -4,7 +4,9 @@ import { InstructorConsole } from '@/components/instructor-console';
 import { QuizDashboard } from '@/components/quiz-dashboard';
 import { currentSession } from '@/lib/auth';
 import { currentAccount } from '@/lib/accounts';
-import { ownedQuizzes, hasDb } from '@/lib/db';
+import { ownedQuizzes, ownedProblems, hasDb } from '@/lib/db';
+import { ProblemHistory } from '@/components/problem-history';
+import { getTechnique } from '@/lib/ciphers';
 import { currentLocale } from '@/lib/i18n';
 import { SignOutButton } from '@/components/sign-out-button';
 
@@ -29,6 +31,7 @@ export default async function InstructorPage({
   const id = (await currentLocale()) === 'id';
 
   const quizzes = account ? await ownedQuizzes(account.id) : [];
+  const problems = account ? await ownedProblems(account.id) : [];
 
   return (
     <>
@@ -58,6 +61,31 @@ export default async function InstructorPage({
 
                 <div className="mt-5">
                   <QuizDashboard quizzes={quizzes} />
+                </div>
+
+                <h2 className="mt-10 text-lg font-medium tracking-[-0.01em]">
+                  {id ? 'Soal tunggal' : 'Single problems'}
+                </h2>
+                <p className="mt-2 max-w-2xl text-sm leading-relaxed text-text-muted">
+                  {id
+                    ? 'Satu kode, satu soal, satu metode. Berjalan sampai ada yang menjawab benar, lalu tercatat atas nama orang itu.'
+                    : 'One code, one problem, one method. It runs until somebody answers correctly, then it is recorded against their name.'}
+                </p>
+
+                <div className="mt-4">
+                  <ProblemHistory
+                    problems={problems.map((p) => ({
+                      code: p.code,
+                      techniqueId: p.techniqueId,
+                      techniqueName: getTechnique(p.techniqueId)?.name ?? p.techniqueId,
+                      label: p.label,
+                      disclose: p.disclose,
+                      solvedAt: p.solvedAt,
+                      solvedBy: p.solvedBy,
+                      attempts: p.attempts,
+                      createdAt: p.createdAt,
+                    }))}
+                  />
                 </div>
               </>
             ) : (

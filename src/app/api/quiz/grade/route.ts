@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { markQuiz } from '@/lib/quiz';
+import { canonicalQuizCode } from '@/lib/quiz-code';
 import { currentAccount } from '@/lib/accounts';
 import { quizPolicy, recordAttempt, closeOnPerfect, hasDb } from '@/lib/db';
 
@@ -20,7 +21,9 @@ export const runtime = 'nodejs';
  */
 export async function POST(request: Request) {
   const body = await request.json().catch(() => ({}));
-  const code = typeof body.code === 'string' ? body.code.toUpperCase() : '';
+  // Upper-casing is not enough: a code without its hyphen upper-cases to a
+  // different string again, and every lookup here is keyed on this value.
+  const code = canonicalQuizCode(typeof body.code === 'string' ? body.code : '') ?? '';
   const answers = Array.isArray(body.answers) ? body.answers.map((a: unknown) => String(a ?? '')) : [];
   const name = typeof body.name === 'string' ? body.name.trim().slice(0, 40) : '';
 

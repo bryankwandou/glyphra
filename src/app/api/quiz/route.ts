@@ -27,6 +27,9 @@ export async function GET(request: Request) {
     );
   }
 
+  // quiz.code is the canonical spelling, never the raw query string. Looking
+  // the policy up by what the visitor typed is what let a restricted quiz be
+  // opened by writing its code in lower case.
   const policy = hasDb() ? await quizPolicy(quiz.code) : null;
 
   if (policy?.closedAt) {

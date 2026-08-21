@@ -25,7 +25,7 @@ export async function POST(request: Request) {
   }
 
   const body = await request.json().catch(() => ({}));
-  const code = String(body.code ?? '').toUpperCase();
+  const raw = String(body.code ?? '');
   const mode = String(body.mode ?? 'open') as QuizMode;
   const title = body.title ? String(body.title).slice(0, 120) : null;
 
@@ -35,9 +35,15 @@ export async function POST(request: Request) {
 
   // Confirm the code actually decodes before recording anything against it.
   // Storing rules for a code that opens nothing would be a row nobody can use.
-  if (!buildQuiz(code)) {
+  //
+  // The builder also hands back the canonical spelling, and that is what the
+  // row is keyed on. Claiming under whatever spelling the caller happened to
+  // send would put the rules somewhere the reading side never looks.
+  const built = buildQuiz(raw);
+  if (!built) {
     return NextResponse.json({ error: 'That code does not open a quiz.' }, { status: 404 });
   }
+  const code = built.code;
 
   const policy = await claimQuiz(code, account.id, mode, title);
   if (!policy || policy.ownerId !== account.id) {

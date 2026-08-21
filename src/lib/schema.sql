@@ -55,3 +55,32 @@ CREATE TABLE IF NOT EXISTS attempts (
 );
 
 CREATE INDEX IF NOT EXISTS attempts_quiz_idx ON attempts (quiz_code, submitted_at DESC);
+
+-- One code, one problem, one named technique.
+--
+-- Separate from `quizzes` because the questions are different objects: a quiz
+-- code carries a set, a problem code carries exactly one and the method it must
+-- use. Sharing a table would have meant a `kind` column and a mode that means
+-- something different depending on it, which is how a schema starts lying.
+--
+-- The technique is recorded here as well as inside the code. That is deliberate
+-- duplication: the code is the authority, and this column exists so the owner's
+-- history can be listed and filtered without decoding ninety codes to do it.
+-- verify:problems checks the two never disagree.
+CREATE TABLE IF NOT EXISTS problems (
+  code         TEXT PRIMARY KEY,
+  owner_id     TEXT NOT NULL REFERENCES accounts(id) ON DELETE CASCADE,
+  technique_id TEXT NOT NULL,
+  label        TEXT,
+  -- Whether the key is shown. Mechanism practice or cryptanalysis; the same
+  -- distinction beginner mode draws.
+  disclose     BOOLEAN NOT NULL DEFAULT false,
+  -- Set by whoever answers correctly first. Null means still open, which is the
+  -- state the owner's list shows as running.
+  solved_at    TIMESTAMPTZ,
+  solved_by    TEXT,
+  attempts     INTEGER NOT NULL DEFAULT 0,
+  created_at   TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+CREATE INDEX IF NOT EXISTS problems_owner_idx ON problems (owner_id, created_at DESC);
