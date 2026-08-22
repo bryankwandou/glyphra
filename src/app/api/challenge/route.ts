@@ -21,6 +21,7 @@ interface Body {
   discloseKey?: boolean;
   /** A message the visitor typed themselves, instead of a drawn one. */
   plaintext?: string;
+  beginner?: boolean;
 }
 
 /**
@@ -143,6 +144,7 @@ export async function POST(request: Request) {
     seed: body.seed,
     plaintext,
     discloseKey: body.discloseKey,
+    beginner: body.beginner === true,
   });
 
   return NextResponse.json({

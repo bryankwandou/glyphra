@@ -20,6 +20,8 @@ export interface GeneratorOptions {
   seed?: string;
   /** Overrides the message bank — used by the AI mode and by typed input. */
   plaintext?: string;
+  /** A first problem: short message, so the work is the method and not the length. */
+  beginner?: boolean;
   /**
    * Show every key field instead of withholding it.
    *
@@ -217,7 +219,66 @@ function buildPrompt(technique: Technique, disclosed: { label: string; value?: s
  * some techniques are degenerate only for particular keys. Block rotation with
  * a block size that divides the message evenly is the example that turned up.
  */
-const NOT_AS_PROBLEMS = new Set(['rot5', 'quoted-printable']);
+/**
+ * What a first problem is allowed to ask.
+ *
+ * Calibrated against the exercises in the course this is used alongside, which
+ * were supplied as the standard to match. Their shape is consistent: a
+ * rule-based question gives five IF-THEN rules and asks you to chain them; a
+ * Naive Bayes question multiplies four fractions and compares two numbers; a
+ * k-means question walks ten points against three centroids. Everything needed
+ * is on the page, the procedure is a handful of steps, and the data is small.
+ *
+ * Beginner mode was not that. It drew forty-six letters on average — around ten
+ * times the hand-work of any exercise in those decks — and two of its seven
+ * techniques asked for machinery the course never teaches. Affine decryption
+ * needs a modular multiplicative inverse. Keyword substitution needs a
+ * twenty-six letter alphabet built and then read backwards. Neither is
+ * conceptually beyond a final-year student; both are far past a *first*
+ * problem, and a first problem that takes twenty minutes is where people stop.
+ *
+ * What is left is one mechanical step each, with the key in hand: shift,
+ * mirror, count, or read in a different order.
+ */
+export const BEGINNER_POOL: readonly string[] = Object.freeze([
+  'caesar',
+  'atbash',
+  'rot13',
+  'a1z26',
+  'reverse',
+  'rail-fence',
+]);
+
+/**
+ * Techniques that belong in the catalogue but cannot be set as problems.
+ *
+ * Two different reasons, and both end with a student staring at a box they
+ * cannot work from.
+ *
+ * ROT5 and quoted-printable hand over the plaintext almost verbatim, so the
+ * question answers itself.
+ *
+ * The two steganography entries are worse, and were reported from a screenshot
+ * of a real quiz: their whole point is that the ciphertext is invisible. A
+ * zero-width problem renders 112 characters of nothing, and the whitespace one
+ * renders 120 spaces and tabs. The page said "12 karakter" above an empty
+ * frame. Nothing threw, the marking was correct, the answer key was real — and
+ * the question could not be attempted by anybody, which makes it worse than an
+ * error, because from the outside it looks like the tool is lying.
+ *
+ * They stay in the catalogue and in the workbench, where you can select the
+ * output and paste it somewhere that shows it. What they cannot be is a
+ * question somebody is expected to read off a projector.
+ */
+const NOT_AS_PROBLEMS = new Set([
+  'rot5',
+  'quoted-printable',
+  'zero-width-stego',
+  'whitespace-stego',
+]);
+
+/** The same set, for anything that offers a list of techniques to choose from. */
+export const UNUSABLE_AS_PROBLEMS: ReadonlySet<string> = NOT_AS_PROBLEMS;
 
 /** True when the "ciphertext" is just the plaintext wearing a hat. */
 function isDegenerate(ciphertext: string, plaintext: string): boolean {
@@ -247,7 +308,10 @@ function buildOne(opts: GeneratorOptions, seed: string, attempt: number): Genera
   const rng = makeRng(attempt === 0 ? seed : `${seed}#${attempt}`);
   const { technique, relaxed } = pickTechnique(opts, rng);
 
-  const bank = VERBOSE.has(technique.id) ? SHORT : ALL_PLAINTEXTS;
+  // A beginner problem is short for the same reason the course's exercises are
+  // small: the point is whether the method is understood, and forty-six letters
+  // of correct substitution demonstrates stamina instead.
+  const bank = opts.beginner || VERBOSE.has(technique.id) ? SHORT : ALL_PLAINTEXTS;
   const plaintext = opts.plaintext?.trim() || rng.pick(bank);
 
   let key = randomKey(technique.keySpec, rng);

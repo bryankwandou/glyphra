@@ -3,6 +3,7 @@ import { currentAccount } from '@/lib/accounts';
 import { createProblem, hasDb } from '@/lib/db';
 import { buildProblem } from '@/lib/problem';
 import { encodeProblemCode, randomProblemSeed, PROBLEM_ROSTER } from '@/lib/problem-code';
+import { UNUSABLE_AS_PROBLEMS } from '@/lib/generator';
 
 export const runtime = 'nodejs';
 
@@ -29,6 +30,20 @@ export async function POST(request: Request) {
 
   if (!PROBLEM_ROSTER.includes(techniqueId)) {
     return NextResponse.json({ error: 'Unknown technique.' }, { status: 400 });
+  }
+
+  // Refused at creation rather than filtered only in the dropdown, because the
+  // dropdown is not the only way to reach this. Codes already minted for these
+  // still decode — breaking a QR somebody printed would be the worse fault.
+  if (UNUSABLE_AS_PROBLEMS.has(techniqueId)) {
+    return NextResponse.json(
+      {
+        error:
+          'That method hides its output, so the problem would show an empty box. ' +
+          'It is in the catalogue and the workbench, but it cannot be set as a question.',
+      },
+      { status: 400 },
+    );
   }
 
   // Retry rather than trust the first draw. A seed that produced an unusable

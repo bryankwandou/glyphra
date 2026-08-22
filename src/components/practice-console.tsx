@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import type { Family, Difficulty } from '@/lib/ciphers/types';
+import { BEGINNER_POOL } from '@/lib/generator';
 
 interface CatalogueEntry {
   id: string;
@@ -128,7 +129,7 @@ export function PracticeConsole({
           techniqueIds: techniqueId
             ? [techniqueId]
             : beginner
-              ? ['caesar', 'atbash', 'rot13', 'affine', 'keyword', 'rail-fence', 'a1z26']
+              ? [...BEGINNER_POOL]
               : undefined,
           families: families.length ? families : undefined,
           difficulties: difficulties.length ? difficulties : undefined,
@@ -136,6 +137,7 @@ export function PracticeConsole({
           source,
           theme: theme.trim() || undefined,
           discloseKey: beginner || undefined,
+          beginner: beginner || undefined,
           plaintext: ownText.trim() || undefined,
         }),
       });

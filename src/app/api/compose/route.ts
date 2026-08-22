@@ -3,6 +3,7 @@ import { currentAccount } from '@/lib/accounts';
 import { saveQuizPlan, claimQuiz, hasDb } from '@/lib/db';
 import { buildComposed } from '@/lib/composed';
 import { PROBLEM_ROSTER } from '@/lib/problem-code';
+import { UNUSABLE_AS_PROBLEMS } from '@/lib/generator';
 import { encodeQuizCode, randomQuizSeed } from '@/lib/quiz-code';
 import type { QuizMode } from '@/lib/db';
 
@@ -48,6 +49,18 @@ export async function POST(request: Request) {
   if (unknown.length) {
     return NextResponse.json(
       { error: `Not a technique this can set: ${unknown[0]}` },
+      { status: 400 },
+    );
+  }
+
+  const hidden = techniques.filter((t) => UNUSABLE_AS_PROBLEMS.has(t));
+  if (hidden.length) {
+    return NextResponse.json(
+      {
+        error:
+          `${hidden[0]} hides its output, so that question would be an empty box. ` +
+          'Use it in the workbench instead.',
+      },
       { status: 400 },
     );
   }

@@ -8,6 +8,7 @@ import { ProblemMaker } from '@/components/problem-maker';
 import { QuizComposer } from '@/components/quiz-composer';
 import { REVERSIBLE } from '@/lib/ciphers';
 import { PROBLEM_ROSTER } from '@/lib/problem-code';
+import { UNUSABLE_AS_PROBLEMS } from '@/lib/generator';
 import { catalogueSummary } from '@/lib/generator';
 import { currentSession } from '@/lib/auth';
 
@@ -48,7 +49,7 @@ export default async function AssessPage() {
         <div className="mt-8">
           <QuizComposer
             signedIn={signedIn}
-            techniques={REVERSIBLE.filter((t) => PROBLEM_ROSTER.includes(t.id)).map((t) => ({
+            techniques={REVERSIBLE.filter((t) => PROBLEM_ROSTER.includes(t.id) && !UNUSABLE_AS_PROBLEMS.has(t.id)).map((t) => ({
               id: t.id,
               name: t.name,
               family: t.family,
@@ -60,7 +61,7 @@ export default async function AssessPage() {
         <div className="mt-8">
           <ProblemMaker
             signedIn={signedIn}
-            techniques={REVERSIBLE.filter((t) => PROBLEM_ROSTER.includes(t.id)).map((t) => ({
+            techniques={REVERSIBLE.filter((t) => PROBLEM_ROSTER.includes(t.id) && !UNUSABLE_AS_PROBLEMS.has(t.id)).map((t) => ({
               id: t.id,
               name: t.name,
               family: t.family,
