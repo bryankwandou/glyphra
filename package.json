@@ -23,7 +23,8 @@
     "verify:doors": "tsx --conditions=react-server --env-file=.env.local scripts/verify-doors.ts",
     "verify:problems": "tsx --conditions=react-server scripts/verify-problems.ts",
     "verify:flow": "tsx --conditions=react-server scripts/verify-problem-flow.ts",
-    "verify:compose": "tsx --conditions=react-server --env-file=.env.local scripts/verify-compose.ts"
+    "verify:compose": "tsx --conditions=react-server --env-file=.env.local scripts/verify-compose.ts",
+    "verify:browser": "python scripts/verify-browser.py"
   },
   "dependencies": {
     "@neondatabase/serverless": "^1.1.0",
