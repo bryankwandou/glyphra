@@ -1,5 +1,7 @@
 import { NextResponse } from 'next/server';
 import { markQuiz } from '@/lib/quiz';
+import { buildComposed } from '@/lib/composed';
+import { gradeAnswer } from '@/lib/generator';
 import { canonicalQuizCode } from '@/lib/quiz-code';
 import { currentAccount } from '@/lib/accounts';
 import { quizPolicy, recordAttempt, closeOnPerfect, hasDb } from '@/lib/db';
@@ -53,7 +55,36 @@ export async function POST(request: Request) {
     }
   }
 
-  const result = markQuiz(code, answers);
+  // A composed quiz has to be marked against its arrangement. Marking it with
+  // the band the code describes would compare a student's answers to a paper
+  // they were never shown — every answer wrong, and no error anywhere.
+  const composed = hasDb() ? await buildComposed(code, name) : null;
+
+  const result = composed
+    ? (() => {
+        const rows = composed.questions.map((q, i) => {
+          const given = answers[i] ?? '';
+          const graded = gradeAnswer(given, composed.answers[i]);
+          return {
+            number: q.number,
+            correct: graded.correct,
+            proximity: graded.similarity,
+            submitted: given,
+            expected: composed.answers[i],
+            techniqueName: q.challenge.techniqueName,
+          };
+        });
+        const right = rows.filter((r) => r.correct).length;
+        return {
+          code: composed.code,
+          total: rows.length,
+          correct: right,
+          score: rows.length ? Math.round((right / rows.length) * 100) : 0,
+          results: rows,
+        };
+      })()
+    : markQuiz(code, answers);
+
   if (!result) {
     return NextResponse.json({ error: 'That code does not match a quiz.' }, { status: 404 });
   }

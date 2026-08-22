@@ -4,6 +4,7 @@ import { buildQuiz } from '@/lib/quiz';
 import { QuizRunner } from '@/components/quiz-runner';
 import { t, currentLocale } from '@/lib/i18n';
 import { quizPolicy, hasDb } from '@/lib/db';
+import { buildComposed } from '@/lib/composed';
 import { currentAccount } from '@/lib/accounts';
 
 export const metadata: Metadata = {
@@ -94,6 +95,41 @@ export default async function QuizPage({ params }: { params: Promise<{ code: str
         />
       );
     }
+  }
+
+  // A composed quiz wins over the band the code would otherwise describe. The
+  // code decodes either way — the band fields are still valid — but where an
+  // arrangement exists it is the instruction and the band is not.
+  const composed = hasDb() ? await buildComposed(quiz.code) : null;
+
+  if (composed) {
+    return (
+      <QuizRunner
+        mode={policy?.mode ?? 'open'}
+        title={policy?.title ?? null}
+        composed
+        quiz={{
+          code: composed.code,
+          timeLimitSeconds: composed.timeLimitSeconds,
+          questionCount: composed.questions.length,
+          difficultyLow: 1,
+          difficultyHigh: 5,
+          questions: composed.questions.map((q) => ({
+            number: q.number,
+            techniqueName: q.challenge.techniqueName,
+            family: q.challenge.family,
+            difficulty: q.challenge.difficulty,
+            era: q.challenge.era,
+            summary: q.challenge.summary,
+            theory: q.challenge.theory,
+            prompt: q.challenge.prompt,
+            ciphertext: q.challenge.ciphertext,
+            keyFields: q.challenge.keyFields,
+            plaintextLength: q.challenge.plaintextLength,
+          })),
+        }}
+      />
+    );
   }
 
   return (

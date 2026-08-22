@@ -5,6 +5,7 @@ import { AssessmentBuilder } from '@/components/assessment-builder';
 import { QuizShare } from '@/components/quiz-share';
 import { currentAccount } from '@/lib/accounts';
 import { ProblemMaker } from '@/components/problem-maker';
+import { QuizComposer } from '@/components/quiz-composer';
 import { REVERSIBLE } from '@/lib/ciphers';
 import { PROBLEM_ROSTER } from '@/lib/problem-code';
 import { catalogueSummary } from '@/lib/generator';
@@ -43,6 +44,18 @@ export default async function AssessPage() {
       <AssessmentBuilder catalogue={catalogueSummary()} />
       <div className="mx-auto max-w-5xl px-5 pb-12">
         <QuizShare signedIn={signedIn} />
+
+        <div className="mt-8">
+          <QuizComposer
+            signedIn={signedIn}
+            techniques={REVERSIBLE.filter((t) => PROBLEM_ROSTER.includes(t.id)).map((t) => ({
+              id: t.id,
+              name: t.name,
+              family: t.family,
+              difficulty: t.difficulty,
+            }))}
+          />
+        </div>
 
         <div className="mt-8">
           <ProblemMaker

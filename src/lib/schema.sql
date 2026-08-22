@@ -84,3 +84,31 @@ CREATE TABLE IF NOT EXISTS problems (
 );
 
 CREATE INDEX IF NOT EXISTS problems_owner_idx ON problems (owner_id, created_at DESC);
+
+-- A manually composed quiz: the method for each question, in order.
+--
+-- This is the one thing here that genuinely cannot be stateless, and the trade
+-- is worth stating rather than hiding. A band quiz packs its whole
+-- configuration into forty bits, so its code works forever with nothing stored.
+-- An arrangement of, say, ten named methods needs seventy bits for the methods
+-- alone; it will not fit in a code somebody can read off a projector. So a
+-- composed quiz keeps its arrangement here and its code points at this row.
+--
+-- What that costs: a composed quiz stops working if this table is lost, where a
+-- band quiz would not. Anyone who needs a code that outlives the database
+-- should use a band quiz, and the interface says so at the point of choosing.
+CREATE TABLE IF NOT EXISTS quiz_plans (
+  code        TEXT PRIMARY KEY,
+  owner_id    TEXT NOT NULL REFERENCES accounts(id) ON DELETE CASCADE,
+  -- Ordered. Position in the array is question number minus one.
+  techniques  TEXT[] NOT NULL,
+  seed        INTEGER NOT NULL,
+  -- Shuffle the order for each participant, the way a paper-based exam varies
+  -- its question order to make copying from a neighbour useless.
+  shuffle     BOOLEAN NOT NULL DEFAULT false,
+  disclose    BOOLEAN NOT NULL DEFAULT false,
+  minutes     INTEGER NOT NULL DEFAULT 0,
+  created_at  TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+CREATE INDEX IF NOT EXISTS quiz_plans_owner_idx ON quiz_plans (owner_id, created_at DESC);

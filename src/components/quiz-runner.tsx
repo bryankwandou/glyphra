@@ -58,10 +58,12 @@ export function QuizRunner({
   quiz,
   mode = 'open',
   title = null,
+  composed = false,
 }: {
   quiz: Quiz;
   mode?: 'open' | 'first_correct' | 'host_only';
   title?: string | null;
+  composed?: boolean;
 }) {
   const storageKey = `glyphra:quiz:${quiz.code}`;
   const d = useT();

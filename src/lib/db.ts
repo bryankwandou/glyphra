@@ -318,3 +318,71 @@ export async function reopenProblem(code: string, ownerId: string): Promise<bool
   `) as unknown[];
   return rows.length > 0;
 }
+
+/* -------------------------------------------------------------- quiz plans */
+
+export interface QuizPlan {
+  code: string;
+  ownerId: string;
+  techniques: string[];
+  seed: number;
+  shuffle: boolean;
+  disclose: boolean;
+  minutes: number;
+  createdAt: string;
+}
+
+function toPlan(r: Record<string, unknown>): QuizPlan {
+  return {
+    code: String(r.code),
+    ownerId: String(r.owner_id),
+    techniques: (r.techniques as string[]) ?? [],
+    seed: Number(r.seed),
+    shuffle: Boolean(r.shuffle),
+    disclose: Boolean(r.disclose),
+    minutes: Number(r.minutes ?? 0),
+    createdAt: new Date(r.created_at as string).toISOString(),
+  };
+}
+
+export async function quizPlan(code: string): Promise<QuizPlan | null> {
+  if (!hasDb()) return null;
+  const rows = (await db()`
+    SELECT code, owner_id, techniques, seed, shuffle, disclose, minutes, created_at
+    FROM quiz_plans WHERE code = ${code} LIMIT 1
+  `) as Record<string, unknown>[];
+  return rows.length ? toPlan(rows[0]) : null;
+}
+
+export async function saveQuizPlan(
+  code: string,
+  ownerId: string,
+  techniques: string[],
+  seed: number,
+  shuffle: boolean,
+  disclose: boolean,
+  minutes: number,
+): Promise<QuizPlan | null> {
+  if (!hasDb()) return null;
+  await db()`
+    INSERT INTO quiz_plans (code, owner_id, techniques, seed, shuffle, disclose, minutes)
+    VALUES (${code}, ${ownerId}, ${techniques}, ${seed}, ${shuffle}, ${disclose}, ${minutes})
+    ON CONFLICT (code) DO UPDATE
+      SET techniques = EXCLUDED.techniques,
+          shuffle = EXCLUDED.shuffle,
+          disclose = EXCLUDED.disclose,
+          minutes = EXCLUDED.minutes
+      WHERE quiz_plans.owner_id = ${ownerId}
+  `;
+  return quizPlan(code);
+}
+
+export async function ownedPlans(ownerId: string): Promise<QuizPlan[]> {
+  if (!hasDb()) return [];
+  const rows = (await db()`
+    SELECT code, owner_id, techniques, seed, shuffle, disclose, minutes, created_at
+    FROM quiz_plans WHERE owner_id = ${ownerId}
+    ORDER BY created_at DESC LIMIT 100
+  `) as Record<string, unknown>[];
+  return rows.map(toPlan);
+}
