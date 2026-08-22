@@ -116,9 +116,7 @@ const chk = (label: string, got: unknown, want: unknown) => {
 
   /* ----------- the shuffled paper is marked against that person's order ----- */
 
-  console.log('
-  marking a shuffled paper
-');
+  console.log('\n  marking a shuffled paper\n');
 
   const splan = hasDb()
     ? ((await db()`SELECT techniques, seed, disclose FROM quiz_plans WHERE code = ${scode}`) as {
