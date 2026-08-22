@@ -29,7 +29,7 @@ interface Challenge {
   keyFields: { label: string; disclosed: boolean; value?: string }[];
   relaxed?: string[];
   plaintextLength: number;
-  messageSource: 'ai' | 'machine';
+  messageSource: 'own' | 'ai' | 'machine';
   sealed: string;
 }
 
@@ -481,8 +481,20 @@ export function PracticeConsole({
               <div className="mt-4 flex flex-wrap items-center gap-3 text-xs text-text-faint">
                 <span className="font-mono">seed {challenge.seed}</span>
                 <span aria-hidden>·</span>
+                {/* Named for each case rather than "ai, else bank".
+                    The API has always returned 'own' when the visitor supplies
+                    their own sentence, but this type did not list it and the
+                    else-branch swallowed it, so a page built from your own words
+                    said the message came from the built-in bank. The sentence was
+                    right and the caption describing it was wrong, which is the
+                    worse of the two failures: nothing looks broken, so the
+                    natural conclusion is that the box does nothing. */}
                 <span>
-                  message from {challenge.messageSource === 'ai' ? 'a language model' : 'the built-in bank'}
+                  {challenge.messageSource === 'own'
+                    ? 'your own message'
+                    : challenge.messageSource === 'ai'
+                      ? 'message from a language model'
+                      : 'message from the built-in bank'}
                 </span>
                 <span aria-hidden>·</span>
                 <span className="tabular-nums">{challenge.plaintextLength} characters to recover</span>

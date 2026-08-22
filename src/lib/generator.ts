@@ -134,14 +134,32 @@ function pickTechnique(opts: GeneratorOptions, rng: Rng): Picked {
       // An id given explicitly is honoured even for the degenerate encodings —
       // asking for quoted-printable by name is presumably a demonstration that
       // it does nothing.
+      //
+      // Narrowed by the other filters, not merely checked against them. The
+      // first version asked whether any named technique matched the family,
+      // reported nothing when one did, and then drew from the whole named list
+      // anyway. Beginner mode supplies a seven-technique list; ticking
+      // Transposition against it left rail-fence as the only honest answer, and
+      // the generator returned Atbash while claiming nothing had been set
+      // aside. That is the same silent override the catalogue-wide fallback
+      // was, wearing a smaller coat: the report was accurate about a decision
+      // the selection did not make.
       const relaxed: string[] = [];
-      if (opts.families?.length && !named.some((t) => opts.families!.includes(t.family))) {
-        relaxed.push('family');
+      let pool = named;
+
+      if (opts.families?.length) {
+        const next = pool.filter((t) => opts.families!.includes(t.family));
+        if (next.length) pool = next;
+        else relaxed.push('family');
       }
-      if (opts.difficulties?.length && !named.some((t) => opts.difficulties!.includes(t.difficulty))) {
-        relaxed.push('difficulty');
+
+      if (opts.difficulties?.length) {
+        const next = pool.filter((t) => opts.difficulties!.includes(t.difficulty));
+        if (next.length) pool = next;
+        else relaxed.push('difficulty');
       }
-      return { technique: rng.pick(named), relaxed };
+
+      return { technique: rng.pick(pool), relaxed };
     }
   }
 

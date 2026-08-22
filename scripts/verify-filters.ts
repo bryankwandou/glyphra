@@ -177,6 +177,83 @@ for (const id of ['caesar', 'vigenere', 'rail-fence', 'base64']) {
   }
 }
 
+/* ------------ a list of techniques is narrowed by the other filters, not just
+                checked against them ------------------------------------------- */
+
+/**
+ * Beginner mode supplies a seven-technique list rather than one name, and this
+ * is where the old rule leaked. It asked whether *any* named technique matched
+ * the family, reported nothing when one did, then drew from the whole list —
+ * so ticking Transposition against the beginner pool, where rail-fence is the
+ * one honest answer, returned Atbash while claiming nothing had been set aside.
+ *
+ * A report that is accurate about a decision the selection never made is worse
+ * than no report, because it is evidence for a claim that is false.
+ */
+const BEGINNER = ['caesar', 'atbash', 'rot13', 'affine', 'keyword', 'rail-fence', 'a1z26'];
+
+for (const family of FAMILIES) {
+  const possible = TECHNIQUES.filter(
+    (t) => BEGINNER.includes(t.id) && t.family === family,
+  );
+
+  for (let i = 0; i < RUNS; i++) {
+    const { publicPart } = generateChallenge({
+      techniqueIds: BEGINNER,
+      families: [family],
+      seed: `narrow-${family}-${i}`,
+    });
+
+    const relaxed = publicPart.relaxed ?? [];
+
+    if (possible.length) {
+      // The intersection exists, so it has to be used and nothing reported.
+      if (publicPart.family !== family) {
+        fail(
+          'narrowing',
+          `a list containing ${possible.map((t) => t.id).join(', ')} was asked for ` +
+            `${family} and returned ${publicPart.techniqueId} (${publicPart.family})`,
+        );
+        break;
+      }
+      if (relaxed.includes('family')) {
+        fail('narrowing', `${family} was satisfiable from the list but reported as set aside`);
+        break;
+      }
+    } else if (!relaxed.includes('family')) {
+      // No intersection, so it must say so rather than quietly substituting.
+      fail(
+        'narrowing',
+        `no technique in the list is ${family}, yet ${publicPart.techniqueId} came back ` +
+          `with nothing reported as set aside`,
+      );
+      break;
+    }
+  }
+}
+
+// The same rule for difficulty inside a supplied list.
+for (const d of [1, 2, 3, 4, 5] as Difficulty[]) {
+  const possible = TECHNIQUES.filter((t) => BEGINNER.includes(t.id) && t.difficulty === d);
+  for (let i = 0; i < RUNS; i++) {
+    const { publicPart } = generateChallenge({
+      techniqueIds: BEGINNER,
+      difficulties: [d],
+      seed: `narrowd-${d}-${i}`,
+    });
+    const relaxed = publicPart.relaxed ?? [];
+    if (possible.length) {
+      if (publicPart.difficulty !== d) {
+        fail('narrowing', `difficulty ${d} was satisfiable from the list but got ${publicPart.difficulty}`);
+        break;
+      }
+    } else if (!relaxed.includes('difficulty')) {
+      fail('narrowing', `difficulty ${d} is impossible from the list but was not reported`);
+      break;
+    }
+  }
+}
+
 /* -------------------------------------------------------------------- output */
 
 console.log('\nGenerator honours its filters\n');
@@ -186,6 +263,7 @@ console.log(`  satisfiable combinations        ${combos.length}`);
 console.log(`  impossible combinations         ${impossible.length}`);
 console.log(`  techniques keyed in beginner    ${keyed}/${checked}`);
 console.log(`  catalogue size                  ${TECHNIQUES.length}`);
+console.log(`  list-narrowing cases            ${FAMILIES.length + 5}`);
 
 if (failures.length) {
   console.error(`\nFAILED — ${failures.length} problem(s):\n`);

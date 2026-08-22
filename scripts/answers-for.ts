@@ -31,8 +31,9 @@ import { buildQuiz } from '../src/lib/quiz';
     return;
   }
 
+  // A band quiz keeps its answers behind markQuiz rather than exposing them on
+  // the built object, and that is the right shape — nothing that renders a quiz
+  // should be able to reach its key. Nothing here needs them today.
   const band = buildQuiz(code);
-  console.log(JSON.stringify({
-    answers: band ? band.questions.map((_, i) => band.answers?.[i] ?? '') : [],
-  }));
+  console.log(JSON.stringify({ answers: [], questions: band ? band.questions.length : 0 }));
 })();
