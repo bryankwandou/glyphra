@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { buildQuiz } from '@/lib/quiz';
 import { currentAccount } from '@/lib/accounts';
 import { quizPolicy, hasDb } from '@/lib/db';
+import { buildComposed } from '@/lib/composed';
 
 export const runtime = 'nodejs';
 
@@ -55,6 +56,44 @@ export async function GET(request: Request) {
         { status: 403 },
       );
     }
+  }
+
+  // A composed quiz has its own arrangement, and this endpoint has to serve it.
+  // Serving the band paper here while the marking endpoint marks against the
+  // plan would compare somebody's answers to questions they never saw — every
+  // answer wrong, no error raised anywhere.
+  //
+  // `who` matters when the arrangement is shuffled: each participant gets their
+  // own order, and marking derives the same order from the same name, so the
+  // two agree by construction rather than by coincidence.
+  const who = new URL(request.url).searchParams.get('who') ?? '';
+  const composed = hasDb() ? await buildComposed(quiz.code, who) : null;
+
+  if (composed) {
+    return NextResponse.json({
+      mode: policy?.mode ?? 'open',
+      title: policy?.title ?? null,
+      composed: true,
+      shuffled: composed.plan.shuffle,
+      code: composed.code,
+      timeLimitSeconds: composed.timeLimitSeconds,
+      questionCount: composed.questions.length,
+      difficultyLow: 1,
+      difficultyHigh: 5,
+      questions: composed.questions.map((q) => ({
+        number: q.number,
+        techniqueName: q.challenge.techniqueName,
+        family: q.challenge.family,
+        difficulty: q.challenge.difficulty,
+        era: q.challenge.era,
+        summary: q.challenge.summary,
+        theory: q.challenge.theory,
+        prompt: q.challenge.prompt,
+        ciphertext: q.challenge.ciphertext,
+        keyFields: q.challenge.keyFields,
+        plaintextLength: q.challenge.plaintextLength,
+      })),
+    });
   }
 
   return NextResponse.json({

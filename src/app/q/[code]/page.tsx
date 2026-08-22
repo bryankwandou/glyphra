@@ -108,6 +108,7 @@ export default async function QuizPage({ params }: { params: Promise<{ code: str
         mode={policy?.mode ?? 'open'}
         title={policy?.title ?? null}
         composed
+        shuffled={composed.plan.shuffle}
         quiz={{
           code: composed.code,
           timeLimitSeconds: composed.timeLimitSeconds,

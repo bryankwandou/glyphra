@@ -95,9 +95,7 @@ const chk = (label: string, got: unknown, want: unknown) => {
   const scode: string = shuffled.body.code;
 
   const paperFor = async (who: string) => {
-    const r = await fetch(`${BASE}/api/quiz?code=${scode}`, {
-      headers: { 'x-participant': who },
-    });
+    const r = await fetch(`${BASE}/api/quiz?code=${scode}&who=${encodeURIComponent(who)}`);
     const j = await r.json();
     return (j.questions ?? []).map((q: { techniqueName: string }) => q.techniqueName);
   };
@@ -105,6 +103,63 @@ const chk = (label: string, got: unknown, want: unknown) => {
   const base = await paperFor('');
   chk('a shuffled paper has every question', base.length, 6);
   chk('and no duplicates', new Set(base).size, base.length);
+
+  const ana = await paperFor('Ana');
+  const budi = await paperFor('Budi');
+  chk('Ana gets the same six questions', [...ana].sort().join(','), [...base].sort().join(','));
+  chk('Budi gets the same six questions', [...budi].sort().join(','), [...base].sort().join(','));
+  chk('two people get different orders', ana.join(',') !== budi.join(','), true);
+
+  const anaAgain = await paperFor('Ana');
+  chk('and a refresh does not reshuffle', anaAgain.join(','), ana.join(','));
+  chk('case does not change an order', (await paperFor('ana')).join(','), ana.join(','));
+
+  /* ----------- the shuffled paper is marked against that person's order ----- */
+
+  console.log('
+  marking a shuffled paper
+');
+
+  const splan = hasDb()
+    ? ((await db()`SELECT techniques, seed, disclose FROM quiz_plans WHERE code = ${scode}`) as {
+        techniques: string[]; seed: number; disclose: boolean;
+      }[])[0]
+    : null;
+
+  if (splan) {
+    const gen = await import('../src/lib/generator');
+    // Answers keyed by technique-and-position in the *plan*, which is how the
+    // server seeds them; the participant's paper is a permutation of these.
+    const bySource = splan.techniques.map((t, i) =>
+      gen.generateChallenge({
+        techniqueIds: [t],
+        seed: `plan:${splan.seed}:q${i}`,
+        discloseKey: splan.disclose,
+      }),
+    );
+
+    // Reorder Ana's answers to match the paper she was actually shown.
+    const anaAnswers = ana.map((name: string) => {
+      const hit = bySource.find((c) => c.publicPart.techniqueName === name);
+      return hit ? hit.solution.plaintext : '';
+    });
+
+    const anaMarked = await (await fetch(`${BASE}/api/quiz/grade`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ code: scode, answers: anaAnswers, name: 'Ana' }),
+    })).json();
+    chk("Ana's own order marks 100", anaMarked.score, 100);
+
+    // The same answers submitted as Budi must not score full marks, because his
+    // paper is in a different order. If it did, ordering is being ignored.
+    const budiMarked = await (await fetch(`${BASE}/api/quiz/grade`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ code: scode, answers: anaAnswers, name: 'Budi' }),
+    })).json();
+    chk("Ana's answers do not fit Budi's paper", budiMarked.score < 100, true);
+  }
 
   /* --------------------------------------- 5. marking follows the same paper -- */
 

@@ -59,20 +59,35 @@ export function QuizRunner({
   mode = 'open',
   title = null,
   composed = false,
+  shuffled = false,
 }: {
   quiz: Quiz;
   mode?: 'open' | 'first_correct' | 'host_only';
   title?: string | null;
   composed?: boolean;
+  shuffled?: boolean;
 }) {
   const storageKey = `glyphra:quiz:${quiz.code}`;
   const d = useT();
   const isID = useLocale() === 'id';
 
+  /**
+   * The paper actually being sat.
+   *
+   * Normally this is exactly what the server rendered. A shuffled composed
+   * quiz is the exception: the order depends on who is sitting it, and nobody
+   * has said who they are until the lobby is filled in. Without this the page
+   * would show the base order while the marking endpoint marked against the
+   * participant's own order — every answer wrong, and nothing anywhere
+   * reporting a fault.
+   */
+  const [paper, setPaper] = useState(quiz.questions);
+  const [dealing, setDealing] = useState(false);
+
   const [phase, setPhase] = useState<Phase>('lobby');
   const [name, setName] = useState('');
   const [current, setCurrent] = useState(0);
-  const [answers, setAnswers] = useState<string[]>(() => new Array(quiz.questions.length).fill(''));
+  const [answers, setAnswers] = useState<string[]>(() => new Array(paper.length).fill(''));
   const [flagged, setFlagged] = useState<Set<number>>(new Set());
   const [remaining, setRemaining] = useState<number | null>(quiz.timeLimitSeconds);
   const [result, setResult] = useState<Result | null>(null);
@@ -92,14 +107,14 @@ export function QuizRunner({
       const saved = localStorage.getItem(storageKey);
       if (!saved) return;
       const parsed = JSON.parse(saved);
-      if (Array.isArray(parsed.answers) && parsed.answers.length === quiz.questions.length) {
+      if (Array.isArray(parsed.answers) && parsed.answers.length === paper.length) {
         setAnswers(parsed.answers);
         if (typeof parsed.name === 'string') setName(parsed.name);
       }
     } catch {
       // A corrupted entry is not worth surfacing; the quiz just starts fresh.
     }
-  }, [storageKey, quiz.questions.length]);
+  }, [storageKey, paper.length]);
 
   useEffect(() => {
     if (phase === 'lobby') return;
@@ -170,7 +185,7 @@ export function QuizRunner({
   };
 
   const go = (index: number) => {
-    setCurrent(Math.max(0, Math.min(quiz.questions.length - 1, index)));
+    setCurrent(Math.max(0, Math.min(paper.length - 1, index)));
     setShowTheory(false);
     requestAnimationFrame(() => answerRef.current?.focus());
   };
@@ -259,13 +274,35 @@ export function QuizRunner({
 
           {answeredCount > 0 && (
             <p className="mt-4 rounded-lg border border-ok bg-ok-soft px-3 py-2 text-sm text-ok">
-              {d.quiz.resumeFound(answeredCount, quiz.questions.length)}
+              {d.quiz.resumeFound(answeredCount, paper.length)}
             </p>
           )}
 
           <button
             type="button"
-            onClick={() => { setPhase('running'); go(0); }}
+            onClick={async () => {
+              if (shuffled) {
+                setDealing(true);
+                try {
+                  const res = await fetch(
+                    `/api/quiz?code=${encodeURIComponent(quiz.code)}&who=${encodeURIComponent(name)}`,
+                  );
+                  const data = await res.json();
+                  if (res.ok && Array.isArray(data.questions)) setPaper(data.questions);
+                } catch {
+                  // Keep the order already on screen. It is the base
+                  // arrangement, which is a coherent paper — and the marking
+                  // endpoint derives its order from the same name, so a failure
+                  // here would mean a mismatch. Better to say so than to sit
+                  // somebody down in front of the wrong questions.
+                  setDealing(false);
+                  return;
+                }
+                setDealing(false);
+              }
+              setPhase('running');
+              go(0);
+            }}
             className="mt-6 w-full rounded-xl bg-accent px-4 py-3 text-sm font-medium text-accent-text transition-colors hover:bg-accent-hover"
           >
             {answeredCount > 0 ? d.quiz.resume : d.quiz.start}
@@ -370,12 +407,12 @@ export function QuizRunner({
       <div className="mx-auto max-w-2xl px-5 py-12">
         <h1 className="text-2xl font-semibold tracking-[-0.02em]">{d.quiz.reviewTitle}</h1>
         <p className="mt-2 text-text-muted">
-          {d.quiz.reviewLead(answeredCount, quiz.questions.length)}
+          {d.quiz.reviewLead(answeredCount, paper.length)}
           {unanswered.length > 0 && ` ${d.quiz.reviewBlankWarn}`}
         </p>
 
         <div className="mt-6 grid grid-cols-5 gap-2 sm:grid-cols-8">
-          {quiz.questions.map((q, i) => (
+          {paper.map((q, i) => (
             <button
               key={q.number}
               type="button"
@@ -420,7 +457,7 @@ export function QuizRunner({
   }
 
   /* ----------------------------------------------------------------- running */
-  const q = quiz.questions[current];
+  const q = paper[current];
   const lowOnTime = remaining !== null && remaining <= 60;
 
   return (
@@ -428,7 +465,7 @@ export function QuizRunner({
       {/* progress and clock */}
       <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
         <span className="text-sm tabular-nums text-text-muted">
-          {d.quiz.questionOf(current + 1, quiz.questions.length)}
+          {d.quiz.questionOf(current + 1, paper.length)}
         </span>
         <span className="text-xs text-text-faint">{d.quiz.answered(answeredCount)}</span>
         {remaining !== null && (
@@ -447,19 +484,19 @@ export function QuizRunner({
       <div className="mt-3 h-1 overflow-hidden rounded-full bg-bg-sunken">
         <div
           className="h-full bg-accent transition-[width] duration-300"
-          style={{ width: `${((current + 1) / quiz.questions.length) * 100}%` }}
+          style={{ width: `${((current + 1) / paper.length) * 100}%` }}
         />
       </div>
 
       {/* question map */}
       <div className="mt-4 flex flex-wrap gap-1.5">
-        {quiz.questions.map((item, i) => (
+        {paper.map((item, i) => (
           <button
             key={item.number}
             type="button"
             onClick={() => go(i)}
             aria-current={i === current}
-            aria-label={`${d.quiz.questionOf(item.number, quiz.questions.length)} — ${answers[i].trim() ? d.quiz.answered(1) : '0'}`}
+            aria-label={`${d.quiz.questionOf(item.number, paper.length)} — ${answers[i].trim() ? d.quiz.answered(1) : '0'}`}
             className={`h-7 w-7 rounded-md text-xs tabular-nums transition-colors ${
               i === current
                 ? 'bg-accent text-accent-text'
@@ -572,7 +609,7 @@ export function QuizRunner({
         >
           {d.common.previous}
         </button>
-        {current < quiz.questions.length - 1 ? (
+        {current < paper.length - 1 ? (
           <button
             type="button"
             onClick={() => go(current + 1)}
