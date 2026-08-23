@@ -13,7 +13,7 @@ export const metadata: Metadata = {
 
 export default async function ProblemPage({ params }: { params: Promise<{ code: string }> }) {
   const { code } = await params;
-  const built = buildProblem(decodeURIComponent(code));
+  const built = buildProblem(decodeURIComponent(code), (await currentLocale()) === 'id' ? 'id' : 'en');
   const id = (await currentLocale()) === 'id';
 
   if (!built) {

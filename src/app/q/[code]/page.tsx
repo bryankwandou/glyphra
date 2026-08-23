@@ -40,9 +40,10 @@ function Notice({
 
 export default async function QuizPage({ params }: { params: Promise<{ code: string }> }) {
   const { code } = await params;
-  const quiz = buildQuiz(decodeURIComponent(code));
+  const lang: 'en' | 'id' = (await currentLocale()) === 'id' ? 'id' : 'en';
+  const quiz = buildQuiz(decodeURIComponent(code), lang);
   const d = (await t()).quiz;
-  const id = (await currentLocale()) === 'id';
+  const id = lang === 'id';
 
   if (!quiz) {
     return <Notice title={d.notFoundTitle} body={d.notFoundP} cta={d.notFoundCta} href="/join" />;
@@ -100,7 +101,7 @@ export default async function QuizPage({ params }: { params: Promise<{ code: str
   // A composed quiz wins over the band the code would otherwise describe. The
   // code decodes either way — the band fields are still valid — but where an
   // arrangement exists it is the instruction and the band is not.
-  const composed = hasDb() ? await buildComposed(quiz.code) : null;
+  const composed = hasDb() ? await buildComposed(quiz.code, '', lang) : null;
 
   if (composed) {
     return (

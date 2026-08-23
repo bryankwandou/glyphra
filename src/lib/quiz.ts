@@ -46,7 +46,7 @@ function slotDifficulty(config: QuizConfig, index: number): Difficulty[] {
  * participant is scored wrongly, and nothing anywhere reports an error. One
  * pass, one source of truth.
  */
-function assemble(code: string): { canonical: string; config: QuizConfig; items: { question: QuizQuestion; answer: string }[] } | null {
+function assemble(code: string, locale: 'en' | 'id' = 'en'): { canonical: string; config: QuizConfig; items: { question: QuizQuestion; answer: string }[] } | null {
   const config = decodeQuizCode(code);
   if (!config) return null;
 
@@ -84,8 +84,8 @@ function assemble(code: string): { canonical: string; config: QuizConfig; items:
   return { canonical, config, items };
 }
 
-export function buildQuiz(code: string): Quiz | null {
-  const built = assemble(code);
+export function buildQuiz(code: string, locale: 'en' | 'id' = 'en'): Quiz | null {
+  const built = assemble(code, locale);
   if (!built) return null;
 
   return {
@@ -98,6 +98,8 @@ export function buildQuiz(code: string): Quiz | null {
 
 /** The answers, from the same pass. Never sent to a participant. */
 export function quizAnswers(code: string): string[] | null {
+  // No locale: this reads answers only, and the instruction line is not part of
+  // marking. Translating it here would change nothing and imply it might.
   const built = assemble(code);
   return built ? built.items.map((i) => i.answer) : null;
 }

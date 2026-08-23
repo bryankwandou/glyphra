@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { currentLocale } from '@/lib/i18n';
 import { generateChallenge } from '@/lib/generator';
 import { seal } from '@/lib/seal';
 import type { Difficulty, Family } from '@/lib/ciphers/types';
@@ -145,6 +146,9 @@ export async function POST(request: Request) {
     plaintext,
     discloseKey: body.discloseKey,
     beginner: body.beginner === true,
+    // Read server-side from the cookie rather than trusted from the body, so
+    // the instruction matches the language the rest of the page is rendering in.
+    locale: await currentLocale(),
   });
 
   return NextResponse.json({

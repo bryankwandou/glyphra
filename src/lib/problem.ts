@@ -25,7 +25,7 @@ export interface BuiltProblem {
  * get the same technique name the page prints. Nothing is stored, so the
  * problem is identical on any machine that has the code.
  */
-export function buildProblem(input: string): { public: BuiltProblem; answer: string } | null {
+export function buildProblem(input: string, locale: 'en' | 'id' = 'en'): { public: BuiltProblem; answer: string } | null {
   const config = decodeProblemCode(input);
   if (!config) return null;
 
@@ -36,6 +36,7 @@ export function buildProblem(input: string): { public: BuiltProblem; answer: str
     techniqueIds: [config.techniqueId],
     seed: `problem:${config.seed}`,
     discloseKey: config.disclose,
+    locale,
   });
 
   // The generator honours a named technique outright, but this is the one place

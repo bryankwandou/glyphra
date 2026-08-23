@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { currentLocale } from '@/lib/i18n';
 import { buildQuiz } from '@/lib/quiz';
 import { currentAccount } from '@/lib/accounts';
 import { quizPolicy, hasDb } from '@/lib/db';
@@ -19,7 +20,8 @@ export const runtime = 'nodejs';
  */
 export async function GET(request: Request) {
   const code = new URL(request.url).searchParams.get('code') ?? '';
-  const quiz = buildQuiz(code);
+  const lang: 'en' | 'id' = (await currentLocale()) === 'id' ? 'id' : 'en';
+  const quiz = buildQuiz(code, lang);
 
   if (!quiz) {
     return NextResponse.json(
@@ -67,7 +69,7 @@ export async function GET(request: Request) {
   // own order, and marking derives the same order from the same name, so the
   // two agree by construction rather than by coincidence.
   const who = new URL(request.url).searchParams.get('who') ?? '';
-  const composed = hasDb() ? await buildComposed(quiz.code, who) : null;
+  const composed = hasDb() ? await buildComposed(quiz.code, who, lang) : null;
 
   if (composed) {
     return NextResponse.json({

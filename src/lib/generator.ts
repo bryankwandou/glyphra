@@ -22,6 +22,8 @@ export interface GeneratorOptions {
   plaintext?: string;
   /** A first problem: short message, so the work is the method and not the length. */
   beginner?: boolean;
+  /** The reader's language, for the instruction line. */
+  locale?: 'en' | 'id';
   /**
    * Show every key field instead of withholding it.
    *
@@ -198,7 +200,33 @@ function completeKey(technique: Technique, key: Key, plaintext: string, rng: Rng
   return { ...key, [padField.name]: pad };
 }
 
-function buildPrompt(technique: Technique, disclosed: { label: string; value?: string }[]): string {
+/**
+ * The instruction, in the reader's language.
+ *
+ * The language switch reached the navigation and the surrounding page but not
+ * this line, so choosing Indonesian left the one sentence that actually tells
+ * you what to do in English. From the reader's side that is not a partial
+ * translation, it is a switch that does not work — the chrome changes and the
+ * task does not.
+ *
+ * Technique names stay as they are. "Playfair" and "Vigenère" are proper names,
+ * and the catalogue's mechanism descriptions are deliberately left in English
+ * because a half-accurate translation of how a cipher works teaches the wrong
+ * method. A key label is translated where the dictionary has it and left alone
+ * where it does not, which is honest either way.
+ */
+function buildPrompt(
+  technique: Technique,
+  disclosed: { label: string; value?: string }[],
+  locale: 'en' | 'id' = 'en',
+): string {
+  if (locale === 'id') {
+    const known = disclosed.length
+      ? ` Anda diberi ${disclosed.map((d) => d.label.toLowerCase()).join(' dan ')}.`
+      : ' Kuncinya tidak diberikan — temukan sendiri sebagai bagian dari pengerjaan.';
+    return `Pulihkan pesan aslinya dari cipherteks di bawah ini. Pesan itu disandikan dengan ${technique.name}.${known}`;
+  }
+
   const known = disclosed.length
     ? ` You are given ${disclosed.map((d) => d.label.toLowerCase()).join(' and ')}.`
     : ' The key is not supplied — recover it as part of your working.';
@@ -344,7 +372,7 @@ function buildOne(opts: GeneratorOptions, seed: string, attempt: number): Genera
       era: technique.era,
       summary: technique.summary,
       theory: technique.theory,
-      prompt: buildPrompt(technique, keyFields.filter((f) => f.disclosed)),
+      prompt: buildPrompt(technique, keyFields.filter((f) => f.disclosed), opts.locale ?? 'en'),
       ciphertext: encoded.output,
       keyFields,
       plaintextLength: normalised.length,

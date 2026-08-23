@@ -55,6 +55,7 @@ function orderFor(plan: QuizPlan, participant: string): number[] {
 export async function buildComposed(
   code: string,
   participant = '',
+  locale: 'en' | 'id' = 'en',
 ): Promise<ComposedQuiz | null> {
   const plan = await quizPlan(code);
   if (!plan || !plan.techniques.length) return null;
@@ -71,6 +72,7 @@ export async function buildComposed(
       // reorders the same questions instead of generating different ones.
       seed: `plan:${plan.seed}:q${source}`,
       discloseKey: plan.disclose,
+      locale,
     });
 
     // The plan names the method; if the generator returned another the plan
