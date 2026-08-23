@@ -217,19 +217,40 @@ function completeKey(technique: Technique, key: Key, plaintext: string, rng: Rng
  */
 function buildPrompt(
   technique: Technique,
-  disclosed: { label: string; value?: string }[],
+  keyFields: { label: string; value?: string; disclosed: boolean }[],
   locale: 'en' | 'id' = 'en',
 ): string {
+  const disclosed = keyFields.filter((f) => f.disclosed);
+
+  // Three states, not two. The version with two told thirty-six keyless
+  // techniques — ROT13, Atbash, A1Z26, reverse writing, every Base encoding —
+  // that "the key is not supplied, recover it as part of your working", because
+  // an empty list of disclosed fields was read as a withheld key rather than as
+  // no key at all.
+  //
+  // Four of the six methods in the first-problem pool are keyless, so beginner
+  // mode promised the key was shown and then set students hunting for one that
+  // does not exist. Somebody who already knows ROT13 sees a wording slip;
+  // somebody meeting it for the first time concludes they have missed something
+  // and stops. The people worst served were the ones the mode exists for.
+  const state = keyFields.length === 0 ? 'none' : disclosed.length ? 'given' : 'withheld';
+
   if (locale === 'id') {
-    const known = disclosed.length
-      ? ` Anda diberi ${disclosed.map((d) => d.label.toLowerCase()).join(' dan ')}.`
-      : ' Kuncinya tidak diberikan — temukan sendiri sebagai bagian dari pengerjaan.';
+    const known =
+      state === 'given'
+        ? ` Anda diberi ${disclosed.map((d) => d.label.toLowerCase()).join(' dan ')}.`
+        : state === 'withheld'
+          ? ' Kuncinya tidak diberikan — temukan sendiri sebagai bagian dari pengerjaan.'
+          : ' Metode ini tidak memakai kunci: caranya selalu sama.';
     return `Pulihkan pesan aslinya dari cipherteks di bawah ini. Pesan itu disandikan dengan ${technique.name}.${known}`;
   }
 
-  const known = disclosed.length
-    ? ` You are given ${disclosed.map((d) => d.label.toLowerCase()).join(' and ')}.`
-    : ' The key is not supplied — recover it as part of your working.';
+  const known =
+    state === 'given'
+      ? ` You are given ${disclosed.map((d) => d.label.toLowerCase()).join(' and ')}.`
+      : state === 'withheld'
+        ? ' The key is not supplied — recover it as part of your working.'
+        : ' This method takes no key: the procedure is always the same.';
   return `Recover the plaintext from the ciphertext below. It was enciphered with ${technique.name}.${known}`;
 }
 
@@ -372,7 +393,7 @@ function buildOne(opts: GeneratorOptions, seed: string, attempt: number): Genera
       era: technique.era,
       summary: technique.summary,
       theory: technique.theory,
-      prompt: buildPrompt(technique, keyFields.filter((f) => f.disclosed), opts.locale ?? 'en'),
+      prompt: buildPrompt(technique, keyFields, opts.locale ?? 'en'),
       ciphertext: encoded.output,
       keyFields,
       plaintextLength: normalised.length,

@@ -25,6 +25,29 @@ export interface Dict {
     practice: string; catalogue: string; tutorial: string; join: string; encode: string;
     papers: string; credentials: string; instructor: string; skip: string;
   };
+  bench: {
+    setH: string; setP: string;
+    beginnerH: string; beginnerP: string;
+    ownH: string; ownP: string;
+    difficultyH: string; familyH: string; techniqueH: string; anyTechnique: string;
+    sourceH: string; sourceMachine: string; sourceModel: string;
+    themeH: string; themePlaceholder: string;
+    seedH: string; seedP: string;
+    generate: string; working: string; newProblem: string;
+    tally: (solved: number, tried: number) => string;
+    nothingYet: string; nothingYetP: string;
+    ciphertext: string; copy: string; copied: string;
+    yourPlaintext: string; answerPlaceholder: string;
+    check: string; checking: string; showMechanism: string; hideMechanism: string;
+    shortcut: string;
+    keyH: string; withheld: string;
+    charsToRecover: (n: number) => string;
+    seedLabel: string; fromOwn: string; fromModel: string; fromBank: string;
+    keyHeldH: string; keyHeldP: string;
+    correct: string; notYet: string;
+    families: Record<string, string>;
+    levels: Record<string, string>;
+  };
   common: {
     difficulty: string; questions: string; time: string; open: string;
     back: string; next: string; previous: string;
@@ -84,6 +107,68 @@ const en: Dict = {
     encode: 'Workbench',
     papers: 'Papers', credentials: 'Credentials', instructor: 'Instructor',
     skip: 'Skip to content',
+  },
+  bench: {
+    setH: 'Set the problem',
+    setP: 'Leave everything untouched to draw from the whole catalogue.',
+    beginnerH: 'Beginner mode',
+    beginnerP: 'The key is shown, so you decode with it rather than having to work it out first. Start here if a cipher is new to you.',
+    ownH: 'Your own message',
+    ownP: 'Type a sentence and the problem is built from it. To simply encipher text and see every step, the workbench is the better tool.',
+    difficultyH: 'Difficulty',
+    familyH: 'Family',
+    techniqueH: 'Or one specific technique',
+    anyTechnique: 'Any',
+    sourceH: 'Message source',
+    sourceMachine: 'Randomiser',
+    sourceModel: 'Language model',
+    themeH: 'Theme for the model',
+    themePlaceholder: 'e.g. a message about the harbour',
+    seedH: 'Seed',
+    seedP: 'The same seed and settings reproduce the same problem, so a whole class can sit the identical paper.',
+    generate: 'Generate',
+    working: 'Working...',
+    newProblem: 'New problem',
+    tally: (solved: number, tried: number) => `${solved} solved of ${tried} attempted`,
+    nothingYet: 'Nothing generated yet',
+    nothingYetP: 'Choose what you want and press the button. Everything is optional.',
+    ciphertext: 'Ciphertext',
+    copy: 'Copy',
+    copied: 'Copied',
+    yourPlaintext: 'Your plaintext',
+    answerPlaceholder: 'Spacing, punctuation and case are ignored when marking.',
+    check: 'Check my answer',
+    checking: 'Checking...',
+    showMechanism: 'How this cipher works',
+    hideMechanism: 'Hide the mechanism',
+    shortcut: 'Ctrl+Enter to submit, Ctrl+G for a new problem',
+    keyH: 'Key',
+    withheld: 'withheld',
+    charsToRecover: (n: number) => `${n} characters to recover`,
+    seedLabel: 'seed',
+    fromOwn: 'your own message',
+    fromModel: 'message from a language model',
+    fromBank: 'message from the built-in bank',
+    keyHeldH: 'Answer key and worked solution',
+    keyHeldP: 'Held back. The solution is encrypted and only the server can open it, so it is not in this page, not in the network response you can read, and not in storage. Instructors sign in to see it.',
+    correct: 'Correct. That is the message.',
+    notYet: 'Not yet.',
+    families: {
+      substitution: 'Monoalphabetic substitution',
+      polyalphabetic: 'Polyalphabetic substitution',
+      polygraphic: 'Polygraphic substitution',
+      transposition: 'Transposition',
+      fractionation: 'Fractionation',
+      encoding: 'Encoding and representation',
+      modern: 'Modern symmetric',
+      asymmetric: 'Asymmetric and number theory',
+      hashing: 'Hashing and integrity',
+      steganography: 'Steganography',
+    },
+    levels: {
+      '1': 'Introductory', '2': 'Straightforward', '3': 'Involved',
+      '4': 'Demanding', '5': 'Research-grade',
+    },
   },
   common: {
     difficulty: 'Difficulty', questions: 'Questions', time: 'Time', open: 'Open',
@@ -211,6 +296,68 @@ const id: Dict = {
     encode: 'Bengkel',
     papers: 'Lembar soal', credentials: 'Kredensial', instructor: 'Pengajar',
     skip: 'Lompat ke konten',
+  },
+  bench: {
+    setH: 'Atur soalnya',
+    setP: 'Biarkan kosong semua kalau mau diambil dari seluruh katalog.',
+    beginnerH: 'Mode pemula',
+    beginnerP: 'Kuncinya ditampilkan, jadi Anda tinggal memakainya untuk membaca pesan, bukan mencarinya dulu. Mulai dari sini kalau sandinya masih baru buat Anda.',
+    ownH: 'Pesan Anda sendiri',
+    ownP: 'Ketik satu kalimat dan soalnya dibuat dari situ. Kalau cuma ingin menyandikan teks dan melihat tiap langkahnya, pakai Bengkel.',
+    difficultyH: 'Kesulitan',
+    familyH: 'Keluarga',
+    techniqueH: 'Atau satu teknik tertentu',
+    anyTechnique: 'Bebas',
+    sourceH: 'Asal pesan',
+    sourceMachine: 'Acak mesin',
+    sourceModel: 'Model bahasa',
+    themeH: 'Tema untuk modelnya',
+    themePlaceholder: 'misalnya: pesan tentang pelabuhan',
+    seedH: 'Benih',
+    seedP: 'Benih dan pengaturan yang sama menghasilkan soal yang sama, jadi satu kelas bisa mengerjakan lembar yang persis sama.',
+    generate: 'Buatkan',
+    working: 'Sedang dibuat...',
+    newProblem: 'Soal baru',
+    tally: (solved: number, tried: number) => `${solved} benar dari ${tried} percobaan`,
+    nothingYet: 'Belum ada soal',
+    nothingYetP: 'Pilih yang Anda mau lalu tekan tombolnya. Semuanya boleh dikosongkan.',
+    ciphertext: 'Cipherteks',
+    copy: 'Salin',
+    copied: 'Tersalin',
+    yourPlaintext: 'Pesan asli menurut Anda',
+    answerPlaceholder: 'Spasi, tanda baca, dan besar-kecil huruf tidak dinilai.',
+    check: 'Periksa jawaban',
+    checking: 'Memeriksa...',
+    showMechanism: 'Cara kerja sandi ini',
+    hideMechanism: 'Sembunyikan caranya',
+    shortcut: 'Ctrl+Enter untuk kirim, Ctrl+G untuk soal baru',
+    keyH: 'Kunci',
+    withheld: 'disembunyikan',
+    charsToRecover: (n: number) => `${n} karakter yang harus dipulihkan`,
+    seedLabel: 'benih',
+    fromOwn: 'pesan Anda sendiri',
+    fromModel: 'pesan dari model bahasa',
+    fromBank: 'pesan dari bank bawaan',
+    keyHeldH: 'Kunci jawaban dan langkah penyelesaian',
+    keyHeldP: 'Ditahan. Jawabannya terenkripsi dan hanya server yang bisa membukanya, jadi tidak ada di halaman ini, tidak ada di respons jaringan yang bisa Anda baca, dan tidak ada di penyimpanan. Pengajar masuk dulu untuk melihatnya.',
+    correct: 'Benar. Itu pesannya.',
+    notYet: 'Belum benar.',
+    families: {
+      substitution: 'Substitusi satu abjad',
+      polyalphabetic: 'Substitusi banyak abjad',
+      polygraphic: 'Substitusi berkelompok',
+      transposition: 'Transposisi',
+      fractionation: 'Pemecahan huruf',
+      encoding: 'Penyandian dan representasi',
+      modern: 'Simetris modern',
+      asymmetric: 'Asimetris dan teori bilangan',
+      hashing: 'Hash dan keutuhan data',
+      steganography: 'Steganografi',
+    },
+    levels: {
+      '1': 'Pengantar', '2': 'Lugas', '3': 'Berlapis',
+      '4': 'Menuntut', '5': 'Tingkat riset',
+    },
   },
   common: {
     difficulty: 'Kesulitan', questions: 'Soal', time: 'Waktu', open: 'Bebas',

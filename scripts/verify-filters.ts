@@ -371,6 +371,69 @@ for (const id of ['affine', 'keyword']) {
   }
 }
 
+/* ------------- the instruction describes the problem it is attached to ------ */
+
+/**
+ * Thirty-six techniques take no key at all — ROT13, Atbash, A1Z26, reverse
+ * writing, every Base encoding — and every one of them used to carry "the key
+ * is not supplied, recover it as part of your working", because an empty list
+ * of disclosed fields was read as withheld rather than as absent.
+ *
+ * Four of the six methods in the first-problem pool are keyless, so beginner
+ * mode promised the key was shown and then set a student hunting for one that
+ * does not exist. Reported from a screenshot: Hexadecimal, beginner mode on,
+ * "Kuncinya tidak diberikan — temukan sendiri".
+ */
+let keyless = 0;
+for (const t of REVERSIBLE) {
+  if (UNUSABLE_AS_PROBLEMS.has(t.id)) continue;
+  let made;
+  try {
+    made = generateChallenge({ techniqueIds: [t.id], seed: `prompt:${t.id}`, discloseKey: true });
+  } catch { continue; }
+
+  const { publicPart } = made;
+  const hasKey = publicPart.keyFields.length > 0;
+  const saysRecoverIt = /not supplied|tidak diberikan/.test(publicPart.prompt);
+  const saysNoKey = /takes no key|tidak memakai kunci/.test(publicPart.prompt);
+
+  if (!hasKey) {
+    keyless++;
+    if (saysRecoverIt) {
+      fail('prompt', `${t.id} has no key, but the instruction tells the student to recover one`);
+    }
+    if (!saysNoKey) {
+      fail('prompt', `${t.id} has no key and the instruction does not say so`);
+    }
+  } else if (saysNoKey) {
+    fail('prompt', `${t.id} does have a key, but the instruction says it takes none`);
+  }
+}
+
+// And in beginner mode specifically, nothing may claim a key is missing.
+for (const id of BEGINNER_POOL) {
+  const { publicPart } = generateChallenge({
+    techniqueIds: [id], seed: `pb:${id}`, discloseKey: true, beginner: true,
+  });
+  if (/not supplied|tidak diberikan/.test(publicPart.prompt)) {
+    fail('beginner prompt', `${id} tells a beginner to recover a key while the mode promises it is shown`);
+  }
+}
+
+// Both languages, so a translation cannot drift out of agreement with the facts.
+for (const id of ['rot13', 'caesar']) {
+  for (const locale of ['en', 'id'] as const) {
+    const { publicPart } = generateChallenge({
+      techniqueIds: [id], seed: `pl:${id}`, discloseKey: true, locale,
+    });
+    const keyed = publicPart.keyFields.length > 0;
+    const claimsNoKey = /takes no key|tidak memakai kunci/.test(publicPart.prompt);
+    if (keyed === claimsNoKey) {
+      fail('prompt language', `${id} in ${locale} describes its key wrongly: "${publicPart.prompt}"`);
+    }
+  }
+}
+
 /* -------------------------------------------------------------------- output */
 
 console.log('\nGenerator honours its filters\n');
@@ -384,6 +447,7 @@ console.log(`  list-narrowing cases            ${FAMILIES.length + 5}`);
 console.log(`  readable as a problem           ${readable}`);
 console.log(`  barred as unreadable            ${UNUSABLE_AS_PROBLEMS.size}`);
 console.log(`  first-problem average length    ${Math.round(beginnerTotal / (BEGINNER_POOL.length * 8))} letters`);
+console.log(`  keyless, described as keyless   ${keyless}`);
 
 if (failures.length) {
   console.error(`\nFAILED — ${failures.length} problem(s):\n`);

@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import type { Family, Difficulty } from '@/lib/ciphers/types';
 import { BEGINNER_POOL } from '@/lib/generator';
+import { useT } from '@/lib/i18n/client';
 
 interface CatalogueEntry {
   id: string;
@@ -81,6 +82,8 @@ export function PracticeConsole({
   catalogue: CatalogueEntry[];
   instructorSignedIn: boolean;
 }) {
+  const d = useT();
+
   const [difficulties, setDifficulties] = useState<Difficulty[]>([]);
   const [families, setFamilies] = useState<Family[]>([]);
   const [techniqueId, setTechniqueId] = useState<string>('');
@@ -118,7 +121,7 @@ export function PracticeConsole({
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          // Beginner mode draws from what an introductory syllabus actually
+          // {d.bench.beginnerH} draws from what an introductory syllabus actually
           // opens with, checked against a real course: Caesar dominates, then
           // simple substitution, Atbash, affine and the rail fence. Without
           // this the mode was still free to serve a Quagmire. Simple
@@ -217,7 +220,7 @@ export function PracticeConsole({
   };
 
   /**
-   * Beginner mode.
+   * {d.bench.beginnerH}.
    *
    * Difficulty 1 was not a beginner setting. It still withheld the key, so a
    * first problem could be "here is some ciphertext, work out the keyword and
@@ -238,9 +241,9 @@ export function PracticeConsole({
     <div className="mx-auto grid max-w-6xl gap-6 px-5 py-10 lg:grid-cols-[300px_1fr] lg:items-start">
       {/* ------------------------------------------------------------ controls */}
       <aside className="rounded-2xl border border-border-subtle bg-bg-raised p-5 lg:sticky lg:top-20">
-        <h2 className="text-sm font-medium tracking-[-0.01em]">Set the problem</h2>
+        <h2 className="text-sm font-medium tracking-[-0.01em]">{d.bench.setH}</h2>
         <p className="mt-1 text-xs leading-relaxed text-text-muted">
-          Leave everything untouched to draw from the whole catalogue.
+          {d.bench.setP}
         </p>
 
         <div className={`mt-4 rounded-xl border p-3 ${beginner ? 'border-ok bg-ok-soft' : 'border-border-subtle bg-bg-sunken'}`}>
@@ -253,11 +256,10 @@ export function PracticeConsole({
             />
             <span className="text-xs leading-relaxed">
               <span className={`font-medium ${beginner ? 'text-ok' : 'text-text'}`}>
-                Beginner mode
+                {d.bench.beginnerH}
               </span>
               <span className="block text-text-muted">
-                The key is shown, so you decode with it rather than having to work it out first.
-                Start here if a cipher is new to you.
+                {d.bench.beginnerP}
               </span>
             </span>
           </label>
@@ -265,7 +267,7 @@ export function PracticeConsole({
 
         <div className="mt-4">
           <label htmlFor="owntext" className="text-[0.6875rem] font-medium uppercase tracking-[0.14em] text-text-faint">
-            Your own message
+            {d.bench.ownH}
           </label>
           <textarea
             id="owntext"
@@ -277,14 +279,13 @@ export function PracticeConsole({
             className="mt-1.5 w-full resize-y rounded-lg border border-border-subtle bg-bg-sunken px-2.5 py-2 text-xs outline-none transition-colors focus:border-accent"
           />
           <p className="mt-1 text-xs leading-relaxed text-text-faint">
-            Type a sentence and the problem is built from it. To simply encipher text and see every
-            step, the workbench is the better tool.
+            {d.bench.ownP}
           </p>
         </div>
 
         <fieldset className="mt-5">
           <legend className="text-[0.6875rem] font-medium uppercase tracking-[0.14em] text-text-faint">
-            Difficulty
+            {d.bench.difficultyH}
           </legend>
           <div className="mt-2 flex flex-wrap gap-1.5">
             {([1, 2, 3, 4, 5] as Difficulty[]).map((d) => (
@@ -308,7 +309,7 @@ export function PracticeConsole({
 
         <fieldset className="mt-5">
           <legend className="text-[0.6875rem] font-medium uppercase tracking-[0.14em] text-text-faint">
-            Family
+            {d.bench.familyH}
           </legend>
           <div className="mt-2 space-y-1">
             {availableFamilies.map((f) => (
@@ -319,7 +320,7 @@ export function PracticeConsole({
                   onChange={() => toggle(families, f, setFamilies)}
                   className="mt-0.5 accent-[var(--accent)]"
                 />
-                <span className="leading-snug">{FAMILY_LABEL[f]}</span>
+                <span className="leading-snug">{d.bench.families[f] ?? FAMILY_LABEL[f]}</span>
               </label>
             ))}
           </div>
@@ -327,7 +328,7 @@ export function PracticeConsole({
 
         <div className="mt-5">
           <label htmlFor="technique" className="text-[0.6875rem] font-medium uppercase tracking-[0.14em] text-text-faint">
-            Or one specific technique
+            {d.bench.techniqueH}
           </label>
           <select
             id="technique"
@@ -335,7 +336,7 @@ export function PracticeConsole({
             onChange={(e) => setTechniqueId(e.target.value)}
             className="mt-2 w-full rounded-lg border border-border-subtle bg-bg-sunken px-2.5 py-2 text-xs outline-none transition-colors focus:border-accent"
           >
-            <option value="">Any</option>
+            <option value="">{d.bench.anyTechnique}</option>
             {/* Easiest first. Alphabetical order put Chaocipher two lines
                 from Caesar, which is no help to somebody choosing where to
                 begin. */}
@@ -352,7 +353,7 @@ export function PracticeConsole({
 
         <fieldset className="mt-5">
           <legend className="text-[0.6875rem] font-medium uppercase tracking-[0.14em] text-text-faint">
-            Message source
+            {d.bench.sourceH}
           </legend>
           <div className="mt-2 grid grid-cols-2 gap-1.5">
             {(['machine', 'ai'] as const).map((s) => (
@@ -365,7 +366,7 @@ export function PracticeConsole({
                   source === s ? 'bg-accent text-accent-text' : 'bg-bg-sunken text-text-muted hover:text-text'
                 }`}
               >
-                {s === 'machine' ? 'Randomiser' : 'Language model'}
+                {s === 'machine' ? d.bench.sourceMachine : d.bench.sourceModel}
               </button>
             ))}
           </div>
@@ -381,7 +382,7 @@ export function PracticeConsole({
 
         <div className="mt-5">
           <label htmlFor="seed" className="text-[0.6875rem] font-medium uppercase tracking-[0.14em] text-text-faint">
-            Seed
+            {d.bench.seedH}
           </label>
           <input
             id="seed"
@@ -391,8 +392,7 @@ export function PracticeConsole({
             className="mt-2 w-full rounded-lg border border-border-subtle bg-bg-sunken px-2.5 py-2 font-mono text-xs outline-none transition-colors focus:border-accent"
           />
           <p className="mt-1.5 text-[0.6875rem] leading-relaxed text-text-faint">
-            The same seed and settings reproduce the same problem, so a whole class can sit the
-            identical paper.
+            {d.bench.seedP}
           </p>
         </div>
 
@@ -402,12 +402,12 @@ export function PracticeConsole({
           disabled={busy}
           className="mt-6 w-full rounded-xl bg-accent px-4 py-2.5 text-sm font-medium text-accent-text transition-colors hover:bg-accent-hover disabled:opacity-50"
         >
-          {busy ? 'Working…' : challenge ? 'New problem' : 'Generate'}
+          {busy ? d.bench.working : challenge ? d.bench.newProblem : d.bench.generate}
         </button>
 
         {attempts > 0 && (
           <p className="mt-4 text-center text-xs tabular-nums text-text-muted">
-            {solved} solved of {attempts} attempted
+            {d.bench.tally(solved, attempts)}
           </p>
         )}
       </aside>
@@ -422,10 +422,9 @@ export function PracticeConsole({
 
         {!challenge ? (
           <div className="rounded-2xl border border-dashed border-border-strong bg-bg-raised px-6 py-20 text-center">
-            <h2 className="text-lg font-medium tracking-[-0.01em]">Nothing generated yet</h2>
+            <h2 className="text-lg font-medium tracking-[-0.01em]">{d.bench.nothingYet}</h2>
             <p className="mx-auto mt-2 max-w-sm text-sm leading-relaxed text-text-muted">
-              Choose your constraints on the left, or press Generate and take whatever the catalogue
-              hands you.
+              {d.bench.nothingYetP}
             </p>
             <button
               type="button"
@@ -433,7 +432,7 @@ export function PracticeConsole({
               disabled={busy}
               className="mt-6 rounded-xl bg-accent px-5 py-2.5 text-sm font-medium text-accent-text transition-colors hover:bg-accent-hover disabled:opacity-50"
             >
-              Generate a problem
+              {d.bench.generate}
             </button>
           </div>
         ) : (
@@ -443,7 +442,7 @@ export function PracticeConsole({
                 <span className="rounded-md bg-accent-soft px-2 py-0.5 font-medium text-accent">
                   {challenge.techniqueName}
                 </span>
-                <span className="text-text-faint">{FAMILY_LABEL[challenge.family]}</span>
+                <span className="text-text-faint">{d.bench.families[challenge.family] ?? FAMILY_LABEL[challenge.family]}</span>
                 <span className="text-text-faint" aria-hidden>·</span>
                 <span className="text-text-faint">{challenge.era}</span>
                 <span className="ml-auto tabular-nums text-text-faint">
@@ -506,7 +505,7 @@ export function PracticeConsole({
             <div className="rounded-2xl border border-border-subtle bg-bg-raised p-5">
               <div className="flex items-center gap-2">
                 <h3 className="text-[0.6875rem] font-medium uppercase tracking-[0.14em] text-text-faint">
-                  Ciphertext
+                  {d.bench.ciphertext}
                 </h3>
                 <span className="h-px flex-1 bg-border-subtle" />
                 <button
@@ -524,7 +523,7 @@ export function PracticeConsole({
 
             <div className="rounded-2xl border border-border-subtle bg-bg-raised p-5">
               <label htmlFor="answer" className="text-[0.6875rem] font-medium uppercase tracking-[0.14em] text-text-faint">
-                Your plaintext
+                {d.bench.yourPlaintext}
               </label>
               <textarea
                 id="answer"
@@ -544,14 +543,14 @@ export function PracticeConsole({
                   disabled={busy || !answer.trim()}
                   className="rounded-xl bg-accent px-5 py-2.5 text-sm font-medium text-accent-text transition-colors hover:bg-accent-hover disabled:opacity-40"
                 >
-                  Check my answer
+                  {d.bench.check}
                 </button>
                 <button
                   type="button"
                   onClick={() => setShowTheory((s) => !s)}
                   className="rounded-xl border border-border-strong px-4 py-2.5 text-sm transition-colors hover:border-accent"
                 >
-                  {showTheory ? 'Hide the mechanism' : 'How this cipher works'}
+                  {showTheory ? d.bench.hideMechanism : d.bench.showMechanism}
                 </button>
                 <span className="text-xs text-text-faint">Ctrl+Enter to submit, Ctrl+G for a new problem</span>
               </div>
@@ -634,7 +633,7 @@ export function PracticeConsole({
             </div>
 
             <div className="rounded-2xl border border-border-subtle bg-bg-raised p-5">
-              <h3 className="text-sm font-medium">Answer key and worked solution</h3>
+              <h3 className="text-sm font-medium">{d.bench.keyHeldH}</h3>
               {instructorSignedIn ? (
                 <>
                   <p className="mt-1.5 text-sm text-text-muted">
