@@ -446,7 +446,7 @@ export function PracticeConsole({
                 <span className="text-text-faint" aria-hidden>·</span>
                 <span className="text-text-faint">{challenge.era}</span>
                 <span className="ml-auto tabular-nums text-text-faint">
-                  Difficulty {challenge.difficulty} — {DIFFICULTY_LABEL[challenge.difficulty]}
+                  {d.common.difficulty} {challenge.difficulty} — {d.bench.levels[String(challenge.difficulty)] ?? DIFFICULTY_LABEL[challenge.difficulty]}
                 </span>
               </div>
 
@@ -552,7 +552,7 @@ export function PracticeConsole({
                 >
                   {showTheory ? d.bench.hideMechanism : d.bench.showMechanism}
                 </button>
-                <span className="text-xs text-text-faint">Ctrl+Enter to submit, Ctrl+G for a new problem</span>
+                <span className="text-xs text-text-faint">{d.bench.shortcut}</span>
               </div>
 
               {verdict && (
