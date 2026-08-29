@@ -72,3 +72,26 @@ export const SHORT: string[] = [
   'Kunci ada di laci',
   'Segera tinggalkan',
 ];
+
+/**
+ * One word, four to eight letters, for somebody's first problem.
+ *
+ * The course's own first exercises are five IF-THEN rules and four fractions —
+ * small enough that the student is thinking about the method and not about
+ * bookkeeping. A fifteen-letter sentence in a Caesar shift is not harder
+ * cryptography, it is the same single step done fifteen times, and the extra
+ * fourteen are where a beginner loses their place and concludes they cannot do
+ * it. These are deliberately words a reader of either language recognises.
+ */
+export const TINY: string[] = [
+  'PAGI',
+  'AMAN',
+  'KUNCI',
+  'SURAT',
+  'MALAM',
+  'JEMBATAN',
+  'DAWN',
+  'SAFE',
+  'BRIDGE',
+  'LETTER',
+];

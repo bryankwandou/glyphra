@@ -44,6 +44,10 @@ export interface Dict {
     charsToRecover: (n: number) => string;
     seedLabel: string; fromOwn: string; fromModel: string; fromBank: string;
     keyHeldH: string; keyHeldP: string;
+    relaxed: string; andJoin: string;
+    anchoring: string; anchor: string; recordedOn: string; explorerNote: string;
+    submitted: string; prox75: string; prox50: string; prox25: string; prox0: string;
+    instrHere: string; openSolution: string; heldBack: string;
     correct: string; notYet: string;
     families: Record<string, string>;
     levels: Record<string, string>;
@@ -150,6 +154,20 @@ const en: Dict = {
     fromModel: 'message from a language model',
     fromBank: 'message from the built-in bank',
     keyHeldH: 'Answer key and worked solution',
+    relaxed: 'Those filters could not all hold at once, so the {names} setting{s} set aside for this problem. A named technique always wins over the broader filters.',
+    andJoin: ' and ',
+    anchoring: 'Writing to devnet…',
+    anchor: 'Anchor this on Solana devnet',
+    recordedOn: 'Recorded on',
+    explorerNote: 'Open it on Solana Explorer and read the memo instruction. The attestation is in plain sight; the hash binds it to this problem without revealing the answer.',
+    submitted: 'You submitted {a} characters against an expected {b}.',
+    prox75: 'Most positions line up — check the start, and check for an off-by-one in the key.',
+    prox50: 'Roughly half the positions line up. The method looks right and the key looks wrong.',
+    prox25: 'Some positions line up. Worth re-reading which technique this is.',
+    prox0: 'Very little lines up. Try the mechanism explanation below.',
+    instrHere: 'You are signed in as an instructor. Open this problem in the instructor view to see the key and every step in both directions.',
+    openSolution: 'Open the solution',
+    heldBack: 'Held back. The solution is encrypted and only the server can open it, so it is not in this page, not in the network response you can read, and not in storage. Instructors sign in to see it.',
     keyHeldP: 'Held back. The solution is encrypted and only the server can open it, so it is not in this page, not in the network response you can read, and not in storage. Instructors sign in to see it.',
     correct: 'Correct. That is the message.',
     notYet: 'Not yet.',
@@ -339,6 +357,20 @@ const id: Dict = {
     fromModel: 'pesan dari model bahasa',
     fromBank: 'pesan dari bank bawaan',
     keyHeldH: 'Kunci jawaban dan langkah penyelesaian',
+    relaxed: 'Filter-filter itu tidak bisa berlaku semua sekaligus, jadi pengaturan {names} dikesampingkan untuk soal ini. Teknik yang disebut namanya selalu menang atas filter yang lebih luas.',
+    andJoin: ' dan ',
+    anchoring: 'Menulis ke devnet…',
+    anchor: 'Catatkan ini di Solana devnet',
+    recordedOn: 'Tercatat di',
+    explorerNote: 'Buka di Solana Explorer dan baca instruksi memo-nya. Kesaksiannya terlihat terbuka; hash-nya mengikat catatan itu ke soal ini tanpa membocorkan jawabannya.',
+    submitted: 'Anda mengirim {a} karakter, sedangkan yang diharapkan {b}.',
+    prox75: 'Sebagian besar posisi sudah cocok — periksa bagian awalnya, dan periksa kalau-kalau kuncinya meleset satu.',
+    prox50: 'Kira-kira separuh posisi cocok. Metodenya tampak benar, kuncinya tampak salah.',
+    prox25: 'Ada beberapa posisi yang cocok. Ada baiknya membaca ulang ini teknik yang mana.',
+    prox0: 'Nyaris tidak ada yang cocok. Coba baca penjelasan cara kerjanya di bawah.',
+    instrHere: 'Anda masuk sebagai pengajar. Buka soal ini di tampilan pengajar untuk melihat kuncinya dan setiap langkah ke dua arah.',
+    openSolution: 'Buka solusinya',
+    heldBack: 'Ditahan. Solusinya disandikan dan hanya server yang bisa membukanya, jadi tidak ada di halaman ini, tidak ada di respons jaringan yang bisa Anda baca, dan tidak ada di penyimpanan. Pengajar masuk untuk melihatnya.',
     keyHeldP: 'Ditahan. Jawabannya terenkripsi dan hanya server yang bisa membukanya, jadi tidak ada di halaman ini, tidak ada di respons jaringan yang bisa Anda baca, dan tidak ada di penyimpanan. Pengajar masuk dulu untuk melihatnya.',
     correct: 'Benar. Itu pesannya.',
     notYet: 'Belum benar.',

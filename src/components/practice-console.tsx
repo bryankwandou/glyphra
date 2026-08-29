@@ -452,10 +452,9 @@ export function PracticeConsole({
 
               {challenge.relaxed && challenge.relaxed.length > 0 && (
                 <p className="mt-3 rounded-lg border border-warn bg-warn-soft px-3 py-2 text-xs leading-relaxed text-warn">
-                  Those filters could not all hold at once, so the{' '}
-                  {challenge.relaxed.join(' and ')} setting
-                  {challenge.relaxed.length > 1 ? 's were' : ' was'} set aside for this problem.
-                  A named technique always wins over the broader filters.
+                  {d.bench.relaxed
+                    .replace('{names}', challenge.relaxed.join(d.bench.andJoin))
+                    .replace('{s}', challenge.relaxed.length > 1 ? 's were' : ' was')}
                 </p>
               )}
 
@@ -472,7 +471,7 @@ export function PracticeConsole({
                         {f.label}
                       </dt>
                       <dd className={`mt-0.5 text-sm ${f.disclosed ? 'font-mono text-text' : 'text-text-faint'}`}>
-                        {f.disclosed ? f.value : 'withheld — recover it'}
+                        {f.disclosed ? f.value : d.bench.withheld}
                       </dd>
                     </div>
                   ))}
@@ -492,13 +491,15 @@ export function PracticeConsole({
                     natural conclusion is that the box does nothing. */}
                 <span>
                   {challenge.messageSource === 'own'
-                    ? 'your own message'
+                    ? d.bench.fromOwn
                     : challenge.messageSource === 'ai'
-                      ? 'message from a language model'
-                      : 'message from the built-in bank'}
+                      ? d.bench.fromModel
+                      : d.bench.fromBank}
                 </span>
                 <span aria-hidden>·</span>
-                <span className="tabular-nums">{challenge.plaintextLength} characters to recover</span>
+                <span className="tabular-nums">
+                  {d.bench.charsToRecover(challenge.plaintextLength)}
+                </span>
               </div>
             </header>
 
@@ -513,7 +514,7 @@ export function PracticeConsole({
                   onClick={() => navigator.clipboard?.writeText(challenge.ciphertext)}
                   className="rounded-md px-2 py-0.5 text-xs text-text-muted transition-colors hover:bg-bg-sunken hover:text-text"
                 >
-                  Copy
+                  {d.bench.copy}
                 </button>
               </div>
               <p className="cipher-text slim-scroll mt-3 max-h-72 overflow-y-auto rounded-lg bg-bg-sunken p-4 text-[0.9375rem] leading-loose text-cipher">
@@ -566,7 +567,7 @@ export function PracticeConsole({
                 >
                   {verdict.correct ? (
                     <div className="space-y-3">
-                      <p>Correct. That is the message.</p>
+                      <p>{d.bench.correct}</p>
                       {!credential && (
                         <button
                           type="button"
@@ -574,7 +575,7 @@ export function PracticeConsole({
                           disabled={anchoring}
                           className="rounded-lg border border-ok px-3 py-1.5 text-xs font-medium transition-opacity hover:opacity-80 disabled:opacity-50"
                         >
-                          {anchoring ? 'Writing to devnet…' : 'Anchor this on Solana devnet'}
+                          {anchoring ? d.bench.anchoring : d.bench.anchor}
                         </button>
                       )}
                       {credential && (
@@ -582,7 +583,7 @@ export function PracticeConsole({
                           {credential.ok ? (
                             <>
                               <p className="text-xs font-medium text-ok">
-                                Recorded on {credential.cluster}
+                                {d.bench.recordedOn} {credential.cluster}
                               </p>
                               <a
                                 href={credential.explorer}
@@ -593,9 +594,7 @@ export function PracticeConsole({
                                 {credential.signature}
                               </a>
                               <p className="mt-2 text-[0.6875rem] leading-relaxed text-text-faint">
-                                Open it on Solana Explorer and read the memo instruction. The
-                                attestation is in plain sight; the hash binds it to this problem
-                                without revealing the answer.
+                                {d.bench.explorerNote}
                               </p>
                             </>
                           ) : (
@@ -606,17 +605,18 @@ export function PracticeConsole({
                     </div>
                   ) : (
                     <div className="space-y-1">
-                      <p>Not yet.</p>
+                      <p>{d.bench.notYet}</p>
                       <p className="text-xs opacity-90">
-                        You submitted {verdict.submittedLength} characters against an expected{' '}
-                        {verdict.expectedLength}.{' '}
+                        {d.bench.submitted
+                          .replace('{a}', String(verdict.submittedLength))
+                          .replace('{b}', String(verdict.expectedLength))}{' '}
                         {verdict.proximity >= 0.75
-                          ? 'Most positions line up — check the start, and check for an off-by-one in the key.'
+                          ? d.bench.prox75
                           : verdict.proximity >= 0.5
-                            ? 'Roughly half the positions line up. The method looks right and the key looks wrong.'
+                            ? d.bench.prox50
                             : verdict.proximity >= 0.25
-                              ? 'Some positions line up. Worth re-reading which technique this is.'
-                              : 'Very little lines up. Try the mechanism explanation below.'}
+                              ? d.bench.prox25
+                              : d.bench.prox0}
                       </p>
                     </div>
                   )}
@@ -637,21 +637,18 @@ export function PracticeConsole({
               {instructorSignedIn ? (
                 <>
                   <p className="mt-1.5 text-sm text-text-muted">
-                    You are signed in as an instructor. Open this problem in the instructor view to
-                    see the key and every step in both directions.
+                    {d.bench.instrHere}
                   </p>
                   <Link
                     href={`/instructor?sealed=${encodeURIComponent(challenge.sealed)}`}
                     className="mt-3 inline-block rounded-lg border border-border-strong px-4 py-2 text-sm font-medium transition-colors hover:border-accent"
                   >
-                    Open the solution
+                    {d.bench.openSolution}
                   </Link>
                 </>
               ) : (
                 <p className="mt-1.5 text-sm leading-relaxed text-text-muted">
-                  Held back. The solution is encrypted and only the server can open it, so it is not
-                  in this page, not in the network response you can read, and not in storage.
-                  Instructors sign in to see it.
+                  {d.bench.heldBack}
                 </p>
               )}
             </div>

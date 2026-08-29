@@ -2,7 +2,8 @@ import {
   TECHNIQUES, REVERSIBLE, getTechnique, A, makeRng, randomKey, lettersOnly,
 } from './ciphers';
 import type { Technique, Key, Difficulty, Family, Step, Rng } from './ciphers/types';
-import { ALL_PLAINTEXTS, SHORT } from './plaintexts';
+import { ALL_PLAINTEXTS, SHORT, TINY } from './plaintexts';
+import { TECHNIQUE_ID } from './i18n/techniques';
 
 /** Techniques whose output balloons, so they get a shorter message. */
 const VERBOSE = new Set([
@@ -295,7 +296,6 @@ export const BEGINNER_POOL: readonly string[] = Object.freeze([
   'rot13',
   'a1z26',
   'reverse',
-  'rail-fence',
 ]);
 
 /**
@@ -360,7 +360,10 @@ function buildOne(opts: GeneratorOptions, seed: string, attempt: number): Genera
   // A beginner problem is short for the same reason the course's exercises are
   // small: the point is whether the method is understood, and forty-six letters
   // of correct substitution demonstrates stamina instead.
-  const bank = opts.beginner || VERBOSE.has(technique.id) ? SHORT : ALL_PLAINTEXTS;
+  // A first problem gets one word, not a sentence: the same single step
+  // repeated fifteen times is not more cryptography, only more places to
+  // lose your count.
+  const bank = opts.beginner ? TINY : VERBOSE.has(technique.id) ? SHORT : ALL_PLAINTEXTS;
   const plaintext = opts.plaintext?.trim() || rng.pick(bank);
 
   let key = randomKey(technique.keySpec, rng);
@@ -391,8 +394,11 @@ function buildOne(opts: GeneratorOptions, seed: string, attempt: number): Genera
       family: technique.family,
       difficulty: technique.difficulty,
       era: technique.era,
-      summary: technique.summary,
-      theory: technique.theory,
+      // A technique with an Indonesian entry is read in Indonesian; one without
+      // falls back to the English beside its implementation. The list is
+      // deliberately partial and the fallback is what keeps that honest.
+      summary: (opts.locale === 'id' && TECHNIQUE_ID[technique.id]?.summary) || technique.summary,
+      theory: (opts.locale === 'id' && TECHNIQUE_ID[technique.id]?.theory) || technique.theory,
       prompt: buildPrompt(technique, keyFields, opts.locale ?? 'en'),
       ciphertext: encoded.output,
       keyFields,

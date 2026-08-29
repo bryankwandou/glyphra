@@ -29,7 +29,8 @@
     "verify:session": "tsx --conditions=react-server scripts/verify-session.ts",
     "verify:login": "python scripts/verify-login.py",
     "verify:viewer": "python scripts/verify-viewer.py",
-    "verify:court": "python scripts/verify-court.py"
+    "verify:court": "python scripts/verify-court.py",
+    "verify:tongue": "python scripts/verify-tongue.py"
   },
   "dependencies": {
     "@neondatabase/serverless": "^1.1.0",
