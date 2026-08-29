@@ -38,6 +38,7 @@ export interface Dict {
     nothingYet: string; nothingYetP: string;
     ciphertext: string; copy: string; copied: string;
     yourPlaintext: string; answerPlaceholder: string;
+    ownPlaceholder: string; seedPlaceholder: string;
     check: string; checking: string; showMechanism: string; hideMechanism: string;
     shortcut: string;
     keyH: string; withheld: string;
@@ -95,6 +96,19 @@ export interface Dict {
     youWrote: string; messageWas: string; withheld: string;
     notFoundTitle: string; notFoundP: string; notFoundCta: string;
   };
+  analysis: {
+    title: string; show: string; hide: string; blurb: string;
+    iocLabel: string; letterCount: string; scaleRandom: string; scaleEnglish: string;
+    verdictMono: string; verdictPoly: string; verdictShort: string; friedman: string;
+    tabLetters: string; tabShifts: string; tabLength: string;
+    lettersHint: string; lettersLegend: string;
+    shiftsHint: string; shiftLabel: string;
+    lengthHint: string; lengthLabel: string; hits: string; noRepeats: string;
+  };
+  pages: {
+    practiceH: string; practiceP: string;
+    assessH: string; assessP: string; assessSignedIn: string; assessInstructor: string;
+  };
   share: {
     title: string; lead: string;
     questions: string; easiest: string; hardest: string; minutesLabel: string;
@@ -141,6 +155,8 @@ const en: Dict = {
     copied: 'Copied',
     yourPlaintext: 'Your plaintext',
     answerPlaceholder: 'Spacing, punctuation and case are ignored when marking.',
+    ownPlaceholder: 'Leave blank to use a drawn message',
+    seedPlaceholder: 'Blank for random',
     check: 'Check my answer',
     checking: 'Checking...',
     showMechanism: 'How this cipher works',
@@ -291,6 +307,39 @@ const en: Dict = {
       'Codes are eight characters and are checked for typos, so a single wrong character is caught rather than opening the wrong quiz. Worth re-reading the code from whoever shared it.',
     notFoundCta: 'Type a code again',
   },
+  analysis: {
+    title: 'Analysis tools',
+    show: 'Open',
+    hide: 'Close',
+    blurb: 'Measure the ciphertext before you guess at it: how lopsided its letters are, which kind of cipher that implies, and what the repeats say about a key length.',
+    iocLabel: 'Index of coincidence',
+    letterCount: '{n} letters',
+    scaleRandom: 'random (0.038)',
+    scaleEnglish: 'English (0.067)',
+    verdictMono: 'The letters are as lopsided as ordinary English, so one fixed alphabet was probably used throughout. Each cipher letter stands for one plaintext letter — the counts below will point at the commonest ones.',
+    verdictPoly: 'The letters are flatter than English, so more than one alphabet was probably used. One plaintext letter becomes several different cipher letters, which is why the counts below look level. Find the key length first.',
+    verdictShort: 'Too few letters for this to mean anything. Around eighty is where the measurement starts to be worth reading; below that the number moves on chance alone.',
+    friedman: 'The spread suggests roughly {n} alphabets in rotation.',
+    tabLetters: 'Letter counts',
+    tabShifts: 'All 25 shifts',
+    tabLength: 'Key length',
+    lettersHint: 'Solid bars are this text. Dashed outlines are what ordinary English would predict. A monoalphabetic cipher keeps the shape and moves it along; matching the tallest bar to E, T, A is where a substitution starts to come apart.',
+    lettersLegend: 'solid — this text · dashed — English',
+    shiftsHint: 'A Caesar shift has only 25 useful keys, so every one is listed and ranked by how much the result reads like English. Lower chi-squared is a better fit. This is the whole break, and it is why the method has not been used in earnest for a very long time.',
+    shiftLabel: 'shift {n}',
+    lengthHint: 'A repeated fragment enciphered at the same key offset repeats in the ciphertext too, so the gap between two identical blocks tends to be a multiple of the key length. These are the lengths that divide the most gaps.',
+    lengthLabel: 'length {n}',
+    hits: '{n} gaps',
+    noRepeats: 'No three-letter block repeats in this text, so there is nothing for this method to work from. It needs a longer message.',
+  },
+  pages: {
+    practiceH: 'Practice range',
+    practiceP: 'Every problem is built when you ask for it and marked on the server. Spacing, punctuation and case are ignored, so you are graded on the cryptanalysis rather than the typing.',
+    assessH: 'Assessment papers',
+    assessP: 'One problem set that circulates between cohorts stops testing anything after the first year. This builds a different paper for each student over the same techniques and the same difficulty, so the marking stays comparable while copying a neighbour does not help.',
+    assessSignedIn: 'Signed in as {name}.',
+    assessInstructor: 'Instructor view',
+  },
   share: {
     title: 'Share a quiz',
     lead:
@@ -344,6 +393,8 @@ const id: Dict = {
     copied: 'Tersalin',
     yourPlaintext: 'Pesan asli menurut Anda',
     answerPlaceholder: 'Spasi, tanda baca, dan besar-kecil huruf tidak dinilai.',
+    ownPlaceholder: 'Kosongkan untuk memakai pesan yang diambil',
+    seedPlaceholder: 'Kosongkan untuk acak',
     check: 'Periksa jawaban',
     checking: 'Memeriksa...',
     showMechanism: 'Cara kerja sandi ini',
@@ -493,6 +544,39 @@ const id: Dict = {
     notFoundP:
       'Kode terdiri dari delapan karakter dan diperiksa dari salah ketik, jadi satu karakter keliru akan tertangkap dan bukan malah membuka kuis yang salah. Sebaiknya baca ulang kodenya dari orang yang membagikannya.',
     notFoundCta: 'Ketik kode lagi',
+  },
+  analysis: {
+    title: 'Alat analisis',
+    show: 'Buka',
+    hide: 'Tutup',
+    blurb: 'Ukur cipherteksnya sebelum menebak: seberapa timpang sebaran hurufnya, jenis sandi apa yang tersirat dari situ, dan apa kata pengulangannya tentang panjang kunci.',
+    iocLabel: 'Indeks koinsidensi',
+    letterCount: '{n} huruf',
+    scaleRandom: 'acak (0,038)',
+    scaleEnglish: 'Inggris (0,067)',
+    verdictMono: 'Sebaran hurufnya setimpang bahasa Inggris biasa, jadi kemungkinan besar satu abjad tetap dipakai dari awal sampai akhir. Tiap huruf sandi mewakili satu huruf asli — hitungan di bawah akan menunjuk yang paling sering.',
+    verdictPoly: 'Sebaran hurufnya lebih rata daripada bahasa Inggris, jadi kemungkinan besar lebih dari satu abjad dipakai. Satu huruf asli menjadi beberapa huruf sandi yang berbeda, dan itulah sebabnya hitungan di bawah terlihat datar. Cari dulu panjang kuncinya.',
+    verdictShort: 'Hurufnya terlalu sedikit untuk bisa berarti apa-apa. Sekitar delapan puluh huruf adalah titik ketika pengukuran ini mulai layak dibaca; di bawah itu angkanya bergerak karena kebetulan saja.',
+    friedman: 'Sebarannya menunjukkan kira-kira {n} abjad yang dipakai bergantian.',
+    tabLetters: 'Hitungan huruf',
+    tabShifts: 'Semua 25 geseran',
+    tabLength: 'Panjang kunci',
+    lettersHint: 'Batang penuh adalah teks ini. Garis putus-putus adalah perkiraan untuk bahasa Inggris biasa. Sandi satu abjad mempertahankan bentuknya dan hanya menggesernya; mencocokkan batang tertinggi dengan E, T, A adalah awal runtuhnya sebuah substitusi.',
+    lettersLegend: 'penuh — teks ini · putus-putus — Inggris',
+    shiftsHint: 'Caesar hanya punya 25 kunci yang berguna, jadi semuanya ditampilkan dan diurutkan menurut seberapa mirip hasilnya dengan bahasa Inggris. Chi-kuadrat lebih kecil berarti lebih cocok. Inilah seluruh pemecahannya, dan inilah sebabnya metode ini sudah lama tidak dipakai dengan sungguh-sungguh.',
+    shiftLabel: 'geseran {n}',
+    lengthHint: 'Potongan yang berulang dan disandikan pada posisi kunci yang sama akan berulang juga di cipherteks, jadi jarak antara dua blok yang identik cenderung kelipatan panjang kunci. Berikut panjang yang membagi habis paling banyak jarak.',
+    lengthLabel: 'panjang {n}',
+    hits: '{n} jarak',
+    noRepeats: 'Tidak ada blok tiga huruf yang berulang di teks ini, jadi tidak ada bahan untuk metode ini. Ia butuh pesan yang lebih panjang.',
+  },
+  pages: {
+    practiceH: 'Lapangan latihan',
+    practiceP: 'Setiap soal dibuat saat Anda memintanya dan dinilai di server. Spasi, tanda baca, dan besar-kecil huruf diabaikan, jadi yang dinilai adalah kriptanalisisnya, bukan ketikannya.',
+    assessH: 'Lembar soal ujian',
+    assessP: 'Satu set soal yang beredar dari angkatan ke angkatan berhenti menguji apa pun setelah tahun pertama. Halaman ini menyusun lembar yang berbeda untuk tiap mahasiswa dengan teknik dan tingkat kesulitan yang sama, sehingga penilaiannya tetap sebanding sementara menyontek teman tidak menolong.',
+    assessSignedIn: 'Masuk sebagai {name}.',
+    assessInstructor: 'Tampilan pengajar',
   },
   share: {
     title: 'Bagikan satu kuis',

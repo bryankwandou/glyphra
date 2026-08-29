@@ -5,6 +5,7 @@ import Link from 'next/link';
 import type { Family, Difficulty } from '@/lib/ciphers/types';
 import { BEGINNER_POOL } from '@/lib/generator';
 import { useT } from '@/lib/i18n/client';
+import { AnalysisPanel } from './analysis-panel';
 
 interface CatalogueEntry {
   id: string;
@@ -275,7 +276,7 @@ export function PracticeConsole({
             spellCheck={false}
             value={ownText}
             onChange={(e) => setOwnText(e.target.value)}
-            placeholder="Leave blank to use a drawn message"
+            placeholder={d.bench.ownPlaceholder}
             className="mt-1.5 w-full resize-y rounded-lg border border-border-subtle bg-bg-sunken px-2.5 py-2 text-xs outline-none transition-colors focus:border-accent"
           />
           <p className="mt-1 text-xs leading-relaxed text-text-faint">
@@ -374,7 +375,7 @@ export function PracticeConsole({
             <input
               value={theme}
               onChange={(e) => setTheme(e.target.value)}
-              placeholder="Subject, if you want one"
+              placeholder={d.bench.themePlaceholder}
               className="mt-2 w-full rounded-lg border border-border-subtle bg-bg-sunken px-2.5 py-2 text-xs outline-none transition-colors focus:border-accent"
             />
           )}
@@ -388,7 +389,7 @@ export function PracticeConsole({
             id="seed"
             value={seed}
             onChange={(e) => setSeed(e.target.value)}
-            placeholder="Blank for random"
+            placeholder={d.bench.seedPlaceholder}
             className="mt-2 w-full rounded-lg border border-border-subtle bg-bg-sunken px-2.5 py-2 font-mono text-xs outline-none transition-colors focus:border-accent"
           />
           <p className="mt-1.5 text-[0.6875rem] leading-relaxed text-text-faint">
@@ -522,6 +523,8 @@ export function PracticeConsole({
               </p>
             </div>
 
+            <AnalysisPanel ciphertext={challenge.ciphertext} />
+
             <div className="rounded-2xl border border-border-subtle bg-bg-raised p-5">
               <label htmlFor="answer" className="text-[0.6875rem] font-medium uppercase tracking-[0.14em] text-text-faint">
                 {d.bench.yourPlaintext}
@@ -533,7 +536,7 @@ export function PracticeConsole({
                 rows={3}
                 spellCheck={false}
                 onChange={(e) => { setAnswer(e.target.value); setVerdict(null); }}
-                placeholder="Spacing, punctuation and case are ignored when marking."
+                placeholder={d.bench.answerPlaceholder}
                 className="plain-text mt-2 w-full resize-y rounded-lg border border-border-subtle bg-bg-sunken px-3 py-2.5 text-sm outline-none transition-colors focus:border-accent"
               />
 
