@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import { PracticeConsole } from '@/components/practice-console';
 import { catalogueSummary } from '@/lib/generator';
-import { currentSession } from '@/lib/auth';
+import { currentViewer } from '@/lib/auth';
 
 export const metadata: Metadata = {
   title: 'Practice',
@@ -11,7 +11,7 @@ export const metadata: Metadata = {
 
 export default async function PracticePage() {
   const catalogue = catalogueSummary();
-  const session = await currentSession();
+  const session = await currentViewer();
 
   return (
     <>

@@ -10,7 +10,7 @@ import { REVERSIBLE } from '@/lib/ciphers';
 import { PROBLEM_ROSTER } from '@/lib/problem-code';
 import { UNUSABLE_AS_PROBLEMS } from '@/lib/generator';
 import { catalogueSummary } from '@/lib/generator';
-import { currentSession } from '@/lib/auth';
+import { currentViewer } from '@/lib/auth';
 
 export const metadata: Metadata = {
   title: 'Assessment papers',
@@ -20,7 +20,7 @@ export const metadata: Metadata = {
 
 export default async function AssessPage() {
   const signedIn = Boolean(await currentAccount());
-  const session = await currentSession();
+  const session = await currentViewer();
   if (!session) redirect('/instructor');
 
   return (

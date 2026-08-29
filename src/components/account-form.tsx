@@ -96,17 +96,34 @@ export function AccountForm({ available }: { available: boolean }) {
         )}
 
         <div>
+          {/*
+            type="email" while signing in is what actually blocked the name.
+            The server was taught to accept the name on the account, but the
+            browser refused the value before any request left the page, so the
+            fix would have been invisible: the field simply would not submit.
+            Signing up still asks for a real address, because that is the
+            identifier being created.
+          */}
           <label htmlFor="em" className="text-xs text-text-muted">
-            {id ? 'Alamat surel' : 'Email address'}
+            {mode === 'signup'
+              ? id ? 'Alamat surel' : 'Email address'
+              : id ? 'Alamat surel atau nama Anda' : 'Email address or your name'}
           </label>
           <input
             id="em"
-            type="email"
+            type={mode === 'signup' ? 'email' : 'text'}
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            autoComplete="email"
+            autoComplete={mode === 'signup' ? 'email' : 'username'}
             className="mt-1 w-full rounded-lg border border-border-subtle bg-bg-sunken px-3 py-2 text-sm outline-none transition-colors focus:border-accent"
           />
+          {mode !== 'signup' && (
+            <p className="mt-1 text-[0.6875rem] leading-relaxed text-text-faint">
+              {id
+                ? 'Nama hanya bisa dipakai kalau cuma satu akun memakainya.'
+                : 'A name works only when exactly one account uses it.'}
+            </p>
+          )}
         </div>
 
         <div>

@@ -83,5 +83,36 @@ export async function currentSession(): Promise<{ username: string } | null> {
 }
 
 export async function requireInstructor(): Promise<{ username: string } | null> {
-  return currentSession();
+  // Either credential. This gates the only route that opens a sealed solution,
+  // and it asked solely about the older cookie — so an instructor who signed in
+  // with an account, on the page headed "Instructor sign-in", could never open
+  // an answer key. The sign-in reported success and the thing it was for stayed
+  // shut.
+  return currentViewer();
+}
+
+/**
+ * Signed in as somebody who may see answers — by either credential.
+ *
+ * Two sign-ins exist. `currentSession` reads the older single-instructor
+ * cookie; accounts set a different one. Every page that asked only the first
+ * treated an account holder as a stranger, which is how somebody could sign in
+ * successfully and still be shown a sign-in button, and how an instructor with
+ * an account could not see the worked solutions their account is for.
+ *
+ * The import is deferred because accounts.ts pulls in the database client, and
+ * this module is used on paths that must keep working with no database
+ * configured at all.
+ */
+export async function currentViewer(): Promise<{ username: string } | null> {
+  const legacy = await currentSession();
+  if (legacy) return legacy;
+
+  try {
+    const { currentAccount } = await import('./accounts');
+    const account = await currentAccount();
+    return account ? { username: account.displayName } : null;
+  } catch {
+    return null;
+  }
 }

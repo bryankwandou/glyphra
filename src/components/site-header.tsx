@@ -1,12 +1,29 @@
 import Link from 'next/link';
 import { Wordmark } from './logo';
-import { currentSession } from '@/lib/auth';
+import { currentViewer } from '@/lib/auth';
 import { CATALOGUE_SIZE } from '@/lib/ciphers';
 import { LanguageToggle } from './language-toggle';
 import { t } from '@/lib/i18n';
 
 export async function SiteHeader() {
-  const session = await currentSession();
+  /*
+    Two sign-ins exist, and the header only knew about one of them.
+
+    `currentSession` reads the older single-instructor cookie. Accounts replaced
+    that and set a different cookie, so signing in with an account left this
+    header rendering its signed-out branch on every page: the account worked
+    perfectly at /instructor, /assess and /account, while the button in the
+    corner still said "sign in".
+
+    That is the whole of the repeated-login complaint, and it is not a session
+    expiring. Somebody signs in, sees a sign-in button on the next page, and
+    reasonably concludes it did not take — so they sign in again, and the button
+    is still there. Nothing in a log looks wrong, because nothing is wrong except
+    what the page says about itself.
+
+    Either credential counts as signed in here.
+  */
+  const session = await currentViewer();
   const d = await t();
 
   const links = [

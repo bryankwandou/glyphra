@@ -93,15 +93,44 @@ export async function createAccount(
   return { id, email: email.trim(), displayName: displayName.trim() };
 }
 
+/**
+ * Sign in with an email address or with the name on the account.
+ *
+ * Accounts replaced an older single-instructor login that took a username, and
+ * the username was dropped without anything taking its place. Somebody who had
+ * been signing in with a name was left typing it into a field that could no
+ * longer match it, reading "Those details did not match" — true about the email
+ * column and useless as an explanation. That is the whole of the repeated
+ * sign-in complaint: not a session that expires, but a name that quietly
+ * stopped being an identifier.
+ *
+ * Email is tried first, because it is unique and cannot be ambiguous. The
+ * display name is considered only when nothing matched, and only when it picks
+ * out exactly one account. Two instructors called "Bryan" must not be able to
+ * reach each other's papers by guessing a password, so an ambiguous name is
+ * refused exactly as a wrong one is — and refused identically, so this cannot
+ * be used to discover which names are taken.
+ */
 export async function authenticate(
   email: string,
   password: string,
 ): Promise<Account | null> {
   if (!hasDb()) return null;
-  const rows = (await db()`
+  const typed = email.trim();
+
+  let rows = (await db()`
     SELECT id, email, display_name, password_hash
-    FROM accounts WHERE email_key = ${email.trim().toLowerCase()} LIMIT 1
+    FROM accounts WHERE email_key = ${typed.toLowerCase()} LIMIT 1
   `) as Record<string, unknown>[];
+
+  if (!rows.length && typed && !typed.includes('@')) {
+    const byName = (await db()`
+      SELECT id, email, display_name, password_hash
+      FROM accounts WHERE lower(display_name) = ${typed.toLowerCase()} LIMIT 2
+    `) as Record<string, unknown>[];
+    if (byName.length === 1) rows = byName;
+  }
+
   if (!rows.length) return null;
   const row = rows[0];
   const ok = await verifyPassword(password, String(row.password_hash));

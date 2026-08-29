@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { InstructorConsole } from '@/components/instructor-console';
 import { QuizDashboard } from '@/components/quiz-dashboard';
-import { currentSession } from '@/lib/auth';
+import { currentViewer } from '@/lib/auth';
 import { currentAccount } from '@/lib/accounts';
 import { ownedQuizzes, ownedProblems, hasDb } from '@/lib/db';
 import { ProblemHistory } from '@/components/problem-history';
@@ -25,7 +25,7 @@ export default async function InstructorPage({
   // still opens answer keys, so nothing that already worked has stopped. An
   // account is what ownership and the gradebook hang off, because "who set this
   // quiz" cannot be answered by a login everybody shares.
-  const session = await currentSession();
+  const session = await currentViewer();
   const account = await currentAccount();
   const params = await searchParams;
   const id = (await currentLocale()) === 'id';
