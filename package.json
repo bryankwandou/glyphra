@@ -26,7 +26,10 @@
     "verify:compose": "tsx --conditions=react-server --env-file=.env.local scripts/verify-compose.ts",
     "verify:browser": "python scripts/verify-browser.py",
     "verify:language": "tsx --conditions=react-server scripts/verify-language.ts",
-    "verify:session": "tsx --conditions=react-server scripts/verify-session.ts"
+    "verify:session": "tsx --conditions=react-server scripts/verify-session.ts",
+    "verify:login": "python scripts/verify-login.py",
+    "verify:viewer": "python scripts/verify-viewer.py",
+    "verify:court": "python scripts/verify-court.py"
   },
   "dependencies": {
     "@neondatabase/serverless": "^1.1.0",

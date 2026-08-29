@@ -119,9 +119,14 @@ with sync_playwright() as pw:
     for path in ["/instructor", "/assess", "/account", "/practice"]:
         p2 = ctx.new_page()
         p2.goto(f"{BASE}{path}", wait_until="networkidle")
-        p2.wait_for_timeout(700)
-        text = p2.inner_text("body")
-        still = NAME in text or bool(re.search("Sign out|Keluar", text))
+        # A cold serverless page needs longer than the old 700ms before its
+        # header has text to read; a short wait made a working header look empty.
+        p2.wait_for_timeout(2000)
+        # The signed-in header offers the papers page; the signed-out one shows
+        # a sign-in link instead. Looking for a sign-out link was looking for
+        # something no page has ever rendered.
+        header = p2.inner_text("header")
+        still = bool(re.search(r"Papers|Lembar soal", header)) or NAME in header
         chk(f"still signed in at {path}", still, True)
         p2.close()
 
@@ -133,7 +138,7 @@ with sync_playwright() as pw:
         fresh = browser.new_context(storage_state=state)
         fp = fresh.new_page()
         fp.goto(f"{BASE}/instructor", wait_until="networkidle")
-        fp.wait_for_timeout(700)
+        fp.wait_for_timeout(2000)
         text = fp.inner_text("body")
         chk(f"survives browser restart {attempt}", NAME in text or "Keluar" in text or "Sign out" in text, True)
         state = fresh.storage_state()
