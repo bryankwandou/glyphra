@@ -2,6 +2,8 @@
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useT, useLocale } from '@/lib/i18n/client';
+import { eraText } from '@/lib/i18n/eras';
+import { errorText } from '@/lib/i18n/errors';
 
 export interface WorkbenchTechnique {
   id: string;
@@ -95,7 +97,7 @@ export function Workbench({ techniques }: { techniques: WorkbenchTechnique[] }) 
         return next;
       });
     } catch (e) {
-      setError((e as Error).message);
+      setError(errorText((e as Error).message, locale));
       setResult(null);
     } finally {
       setBusy(false);
@@ -363,7 +365,7 @@ export function Workbench({ techniques }: { techniques: WorkbenchTechnique[] }) 
               </h3>
               <p className="mt-2 text-sm leading-relaxed text-text-muted">{technique.theory}</p>
               <p className="mt-3 text-xs text-text-faint">
-                {technique.era} · {id ? 'kesulitan' : 'difficulty'} {technique.difficulty}
+                {eraText(technique.era, locale)} · {id ? 'kesulitan' : 'difficulty'} {technique.difficulty}
               </p>
             </section>
           </>

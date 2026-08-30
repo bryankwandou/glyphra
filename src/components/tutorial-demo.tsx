@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useLocale } from '@/lib/i18n/client';
+import { errorText } from '@/lib/i18n/errors';
 
 interface Field {
   name: string;
@@ -37,6 +38,7 @@ export function TutorialDemo({
   initialText: string;
 }) {
   const id = useLocale() === 'id';
+  const locale = useLocale();
 
   const [text, setText] = useState(initialText);
   const [key, setKey] = useState<Record<string, string>>(initialKey);
@@ -59,7 +61,7 @@ export function TutorialDemo({
         setOut(data.output);
         setError(null);
       } catch (e) {
-        setError((e as Error).message);
+        setError(errorText((e as Error).message, locale));
       } finally {
         setBusy(false);
       }

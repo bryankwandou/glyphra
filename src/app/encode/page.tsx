@@ -3,6 +3,10 @@ import Link from 'next/link';
 import { TECHNIQUES } from '@/lib/ciphers';
 import { Workbench, type WorkbenchTechnique } from '@/components/workbench';
 import { currentLocale } from '@/lib/i18n';
+import { eraText } from '@/lib/i18n/eras';
+import { prose } from '@/lib/i18n/techniques';
+import { keyLabel } from '@/lib/i18n/key-labels';
+import type { Locale } from '@/lib/i18n/dict';
 
 export const metadata: Metadata = {
   title: 'Workbench',
@@ -17,7 +21,7 @@ export const metadata: Metadata = {
  * near techniques a beginner could actually attempt. Sorting by difficulty and
  * then by name means the top of the list is genuinely the place to start.
  */
-function ordered(): WorkbenchTechnique[] {
+function ordered(locale: Locale): WorkbenchTechnique[] {
   return [...TECHNIQUES]
     .sort((a, b) => a.difficulty - b.difficulty || a.name.localeCompare(b.name))
     .map((t) => ({
@@ -25,14 +29,14 @@ function ordered(): WorkbenchTechnique[] {
       name: t.name,
       family: t.family,
       difficulty: t.difficulty,
-      summary: t.summary,
-      theory: t.theory,
-      era: t.era,
+      summary: prose(t, locale).summary,
+      theory: prose(t, locale).theory,
+      era: eraText(t.era, locale),
       oneWay: !!t.oneWay,
       keySpec: t.keySpec.map((f) => ({
         name: f.name,
         kind: f.kind,
-        label: f.label,
+        label: keyLabel(f.label, locale),
         min: 'min' in f ? f.min : undefined,
         max: 'max' in f ? f.max : undefined,
         options: 'options' in f ? f.options : undefined,
@@ -69,7 +73,7 @@ export default async function EncodePage() {
         </div>
       </header>
 
-      <Workbench techniques={ordered()} />
+      <Workbench techniques={ordered(locale)} />
     </div>
   );
 }

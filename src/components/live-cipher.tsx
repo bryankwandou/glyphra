@@ -2,19 +2,22 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react';
 import type { Technique, Key } from '@/lib/ciphers/types';
+import { useLocale } from '@/lib/i18n/client';
 
+// The note beside each technique is a claim about it, not a caption, so both
+// languages say the same thing rather than one being a gloss of the other.
 const SHOWCASE = [
-  { id: 'caesar', key: { shift: 3 } as Key, note: 'Roman, first century BC' },
-  { id: 'vigenere', key: { keyword: 'LANTERN' } as Key, note: 'Unbroken for three centuries' },
-  { id: 'playfair', key: { keyword: 'HARBOUR' } as Key, note: 'British field cipher, two wars' },
-  { id: 'rail-fence', key: { rails: 4 } as Key, note: 'Order changes, letters do not' },
-  { id: 'bifid', key: { keyword: 'ORCHARD', period: 5 } as Key, note: 'Diffusion, decades early' },
-  { id: 'enigma', key: { r1: 'I', r2: 'II', r3: 'III', p1: 0, p2: 0, p3: 0 } as Key, note: 'A new alphabet per keystroke' },
-  { id: 'morse', key: {} as Key, note: 'Built to survive noise, not eavesdroppers' },
-  { id: 'base64', key: {} as Key, note: 'Not a cipher, and never was' },
+  { id: 'caesar', key: { shift: 3 } as Key, en: 'Roman, first century BC', id_: 'Romawi, abad pertama SM' },
+  { id: 'vigenere', key: { keyword: 'LANTERN' } as Key, en: 'Unbroken for three centuries', id_: 'Tak terpecahkan selama tiga abad' },
+  { id: 'playfair', key: { keyword: 'HARBOUR' } as Key, en: 'British field cipher, two wars', id_: 'Sandi lapangan Inggris, dua perang' },
+  { id: 'rail-fence', key: { rails: 4 } as Key, en: 'Order changes, letters do not', id_: 'Urutannya berubah, hurufnya tidak' },
+  { id: 'bifid', key: { keyword: 'ORCHARD', period: 5 } as Key, en: 'Diffusion, decades early', id_: 'Difusi, berpuluh tahun lebih awal' },
+  { id: 'enigma', key: { r1: 'I', r2: 'II', r3: 'III', p1: 0, p2: 0, p3: 0 } as Key, en: 'A new alphabet per keystroke', id_: 'Satu abjad baru setiap ketukan tombol' },
+  { id: 'morse', key: {} as Key, en: 'Built to survive noise, not eavesdroppers', id_: 'Dibuat untuk menembus derau, bukan penyadap' },
+  { id: 'base64', key: {} as Key, en: 'Not a cipher, and never was', id_: 'Bukan sandi, dan tidak pernah menjadi sandi' },
 ];
 
-const DEFAULT_TEXT = 'Meet me at the bridge at midnight';
+const DEFAULT_TEXT = { en: 'Meet me at the bridge at midnight', id: 'Temui aku di jembatan tengah malam' };
 
 /**
  * The engine is loaded after mount rather than bundled into the first paint.
@@ -22,8 +25,10 @@ const DEFAULT_TEXT = 'Meet me at the bridge at midnight';
  * before the page is on screen.
  */
 export function LiveCipher() {
+  const id = useLocale() === 'id';
+  const fallback = id ? DEFAULT_TEXT.id : DEFAULT_TEXT.en;
   const [engine, setEngine] = useState<{ get: (id: string) => Technique | undefined } | null>(null);
-  const [text, setText] = useState(DEFAULT_TEXT);
+  const [text, setText] = useState(fallback);
   const [index, setIndex] = useState(0);
   const [paused, setPaused] = useState(false);
   const touched = useRef(false);
@@ -48,11 +53,11 @@ export function LiveCipher() {
   const output = useMemo(() => {
     if (!technique) return '';
     try {
-      return technique.encode(text || DEFAULT_TEXT, current.key).output;
+      return technique.encode(text || fallback, current.key).output;
     } catch {
       return '';
     }
-  }, [technique, text, current]);
+  }, [technique, text, current, fallback]);
 
   return (
     <div
@@ -67,14 +72,14 @@ export function LiveCipher() {
           <span className="h-2.5 w-2.5 rounded-full bg-border-strong" />
         </div>
         <span className="ml-2 text-xs text-text-faint">
-          {technique ? technique.name : 'loading the engine'}
+          {technique ? technique.name : id ? 'memuat mesinnya' : 'loading the engine'}
         </span>
-        <span className="ml-auto text-xs text-text-faint">{current.note}</span>
+        <span className="ml-auto text-xs text-text-faint">{id ? current.id_ : current.en}</span>
       </div>
 
       <div className="p-4 sm:p-5">
         <label htmlFor="live-plain" className="text-[0.6875rem] font-medium uppercase tracking-[0.14em] text-text-faint">
-          Plaintext — edit it
+          {id ? 'Teks asli — silakan diubah' : 'Plaintext — edit it'}
         </label>
         <textarea
           id="live-plain"
@@ -87,7 +92,7 @@ export function LiveCipher() {
 
         <div className="mt-4 flex items-center gap-2">
           <span className="text-[0.6875rem] font-medium uppercase tracking-[0.14em] text-text-faint">
-            Ciphertext
+            {id ? 'Cipherteks' : 'Ciphertext'}
           </span>
           <span className="h-px flex-1 bg-border-subtle" />
         </div>

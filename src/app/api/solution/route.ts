@@ -2,6 +2,8 @@ import { NextResponse } from 'next/server';
 import { unseal } from '@/lib/seal';
 import { requireInstructor } from '@/lib/auth';
 import type { Solution } from '@/lib/generator';
+import { currentLocale } from '@/lib/i18n';
+import { translateSteps } from '@/lib/i18n/steps';
 
 export const runtime = 'nodejs';
 
@@ -38,8 +40,8 @@ export async function POST(request: Request) {
   return NextResponse.json({
     plaintext: solution.plaintext,
     key: solution.key,
-    encodeSteps: solution.encodeSteps,
-    decodeSteps: solution.decodeSteps,
+    encodeSteps: translateSteps(solution.encodeSteps, await currentLocale()),
+    decodeSteps: translateSteps(solution.decodeSteps, await currentLocale()),
     viewedBy: session.username,
   });
 }

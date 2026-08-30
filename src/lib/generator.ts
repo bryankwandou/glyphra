@@ -4,6 +4,7 @@ import {
 import type { Technique, Key, Difficulty, Family, Step, Rng } from './ciphers/types';
 import { ALL_PLAINTEXTS, SHORT, TINY } from './plaintexts';
 import { TECHNIQUE_ID } from './i18n/techniques';
+import { keyLabel } from './i18n/key-labels';
 
 /** Techniques whose output balloons, so they get a shorter message. */
 const VERBOSE = new Set([
@@ -379,7 +380,7 @@ function buildOne(opts: GeneratorOptions, seed: string, attempt: number): Genera
     .map((f) => {
       const shown = opts.discloseKey || disclose.has(f.name);
       return {
-        label: f.label,
+        label: keyLabel(f.label, opts.locale ?? 'en'),
         disclosed: shown,
         value: shown ? String(key[f.name]) : undefined,
       };

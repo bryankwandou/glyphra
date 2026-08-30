@@ -28,6 +28,8 @@ export interface AssessmentSpec {
   techniqueIds?: string[];
   families?: Family[];
   difficulties?: Difficulty[];
+  /** The language the instructor is working in; it is printed on the sheets. */
+  locale?: 'en' | 'id';
 }
 
 export interface PaperProblem {
@@ -139,6 +141,7 @@ export function buildAssessment(spec: AssessmentSpec): Assessment {
           techniqueIds: spec.techniqueIds,
           families: spec.families,
           difficulties: plan[q - 1],
+          locale: spec.locale,
           seed: `${spec.masterSeed}:p${n}:q${q}:a${attempt}`,
         });
         generated = candidate;

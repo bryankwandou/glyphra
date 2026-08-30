@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { useLocale } from '@/lib/i18n/client';
+import { errorText } from '@/lib/i18n/errors';
 import { QrCode } from './qr-code';
 
 interface Technique {
@@ -39,6 +40,7 @@ export function QuizComposer({
   signedIn: boolean;
 }) {
   const id = useLocale() === 'id';
+  const locale = useLocale();
 
   const [rows, setRows] = useState<string[]>(['caesar', 'atbash', 'rail-fence']);
   const [shuffle, setShuffle] = useState(false);
@@ -97,7 +99,7 @@ export function QuizComposer({
       if (!res.ok) throw new Error(data.error ?? 'That did not work.');
       setBuilt(data);
     } catch (e) {
-      setError((e as Error).message);
+      setError(errorText((e as Error).message, locale));
     } finally {
       setBusy(false);
     }

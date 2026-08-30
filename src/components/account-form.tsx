@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useLocale } from '@/lib/i18n/client';
+import { errorText } from '@/lib/i18n/errors';
 
 /**
  * Sign up or sign in, on one form.
@@ -15,6 +16,7 @@ import { useLocale } from '@/lib/i18n/client';
 export function AccountForm({ available }: { available: boolean }) {
   const router = useRouter();
   const id = useLocale() === 'id';
+  const locale = useLocale();
 
   const [mode, setMode] = useState<'signin' | 'signup'>('signin');
   const [email, setEmail] = useState('');
@@ -38,7 +40,7 @@ export function AccountForm({ available }: { available: boolean }) {
       router.push('/instructor');
       router.refresh();
     } catch (err) {
-      setError((err as Error).message);
+      setError(errorText((err as Error).message, locale));
     } finally {
       setBusy(false);
     }

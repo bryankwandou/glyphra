@@ -17,6 +17,8 @@
  */
 import { DICT, LOCALES } from '../src/lib/i18n/dict';
 import { generateChallenge, BEGINNER_POOL } from '../src/lib/generator';
+import { TECHNIQUES } from '../src/lib/ciphers';
+import { TECHNIQUE_ID } from '../src/lib/i18n/techniques';
 
 const failures: string[] = [];
 const fail = (what: string, detail: string) => failures.push(`[${what}] ${detail}`);
@@ -134,12 +136,35 @@ for (const id of BEGINNER_POOL) {
   }
 }
 
+/* ------------------------------- 3. every technique explains itself in both */
+
+// The overlay falls back to English when an entry is missing, which is the
+// right behaviour at runtime and the wrong thing to rely on: nothing breaks, so
+// nobody notices, and the gap sits in front of a student instead. A technique
+// added without Indonesian prose stops the build here.
+let explained = 0;
+for (const t of TECHNIQUES) {
+  const prose = TECHNIQUE_ID[t.id];
+  if (!prose) {
+    fail('untranslated', `${t.id} has no Indonesian summary or theory`);
+    continue;
+  }
+  if (!prose.summary.trim()) fail('untranslated', `${t.id} has an empty summary`);
+  if (!prose.theory.trim()) fail('untranslated', `${t.id} has an empty theory`);
+
+  // A copied English paragraph passes a presence check and fails a reader.
+  if (prose.summary === t.summary) fail('copied', `${t.id} summary is still the English one`);
+  if (prose.theory === t.theory) fail('copied', `${t.id} theory is still the English one`);
+  explained += 1;
+}
+
 /* -------------------------------------------------------------------- output */
 
 console.log('\nBoth languages\n');
 console.log(`  locales                        ${LOCALES.join(', ')}`);
 console.log(`  phrases checked in each        ${leaves}`);
 console.log(`  first-problem methods compared ${BEGINNER_POOL.length}`);
+console.log(`  techniques explained in both    ${explained} of ${TECHNIQUES.length}`);
 
 if (failures.length) {
   console.error(`\nFAILED — ${failures.length} problem(s):\n`);

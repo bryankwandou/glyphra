@@ -4,7 +4,9 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import type { Family, Difficulty } from '@/lib/ciphers/types';
 import { BEGINNER_POOL } from '@/lib/generator';
-import { useT } from '@/lib/i18n/client';
+import { useT, useLocale } from '@/lib/i18n/client';
+import { eraText } from '@/lib/i18n/eras';
+import { errorText } from '@/lib/i18n/errors';
 import { AnalysisPanel } from './analysis-panel';
 
 interface CatalogueEntry {
@@ -84,6 +86,7 @@ export function PracticeConsole({
   instructorSignedIn: boolean;
 }) {
   const d = useT();
+  const locale = useLocale();
 
   const [difficulties, setDifficulties] = useState<Difficulty[]>([]);
   const [families, setFamilies] = useState<Family[]>([]);
@@ -150,7 +153,7 @@ export function PracticeConsole({
       setChallenge(data);
       requestAnimationFrame(() => answerRef.current?.focus());
     } catch (e) {
-      setError((e as Error).message);
+      setError(errorText((e as Error).message, locale));
     } finally {
       setBusy(false);
     }
@@ -172,7 +175,7 @@ export function PracticeConsole({
       setAttempts((a) => a + 1);
       if (data.correct) setSolved((s) => s + 1);
     } catch (e) {
-      setError((e as Error).message);
+      setError(errorText((e as Error).message, locale));
     } finally {
       setBusy(false);
     }
@@ -445,7 +448,7 @@ export function PracticeConsole({
                 </span>
                 <span className="text-text-faint">{d.bench.families[challenge.family] ?? FAMILY_LABEL[challenge.family]}</span>
                 <span className="text-text-faint" aria-hidden>·</span>
-                <span className="text-text-faint">{challenge.era}</span>
+                <span className="text-text-faint">{eraText(challenge.era, locale)}</span>
                 <span className="ml-auto tabular-nums text-text-faint">
                   {d.common.difficulty} {challenge.difficulty} — {d.bench.levels[String(challenge.difficulty)] ?? DIFFICULTY_LABEL[challenge.difficulty]}
                 </span>

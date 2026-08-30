@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { useLocale } from '@/lib/i18n/client';
+import { eraText } from '@/lib/i18n/eras';
 import type { BuiltProblem } from '@/lib/problem';
 
 /**
@@ -23,6 +24,7 @@ export function ProblemRunner({
   label: string | null;
 }) {
   const id = useLocale() === 'id';
+  const locale = useLocale();
 
   const [name, setName] = useState('');
   const [answer, setAnswer] = useState('');
@@ -155,7 +157,7 @@ export function ProblemRunner({
           </div>
           <div>
             <dt className="text-xs text-text-faint">{id ? 'Masa' : 'Era'}</dt>
-            <dd>{problem.era}</dd>
+            <dd>{eraText(problem.era, locale)}</dd>
           </div>
         </dl>
       </header>

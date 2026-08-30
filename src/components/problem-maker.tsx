@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { useLocale } from '@/lib/i18n/client';
+import { errorText } from '@/lib/i18n/errors';
 import { QrCode } from './qr-code';
 
 interface Technique {
@@ -37,6 +38,7 @@ export function ProblemMaker({
   signedIn: boolean;
 }) {
   const id = useLocale() === 'id';
+  const locale = useLocale();
 
   const [techniqueId, setTechniqueId] = useState('caesar');
   const [disclose, setDisclose] = useState(true);
@@ -67,7 +69,7 @@ export function ProblemMaker({
         keyFields: data.preview.keyFields,
       });
     } catch (e) {
-      setError((e as Error).message);
+      setError(errorText((e as Error).message, locale));
     } finally {
       setBusy(false);
     }

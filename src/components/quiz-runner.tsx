@@ -3,6 +3,8 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
 import { useT, useLocale } from '@/lib/i18n/client';
+import { eraText } from '@/lib/i18n/eras';
+import { errorText } from '@/lib/i18n/errors';
 import { Leaderboard } from './leaderboard';
 
 interface Question {
@@ -69,6 +71,7 @@ export function QuizRunner({
 }) {
   const storageKey = `glyphra:quiz:${quiz.code}`;
   const d = useT();
+  const locale = useLocale();
   const isID = useLocale() === 'id';
 
   /**
@@ -148,7 +151,7 @@ export function QuizRunner({
         localStorage.removeItem(storageKey);
       } catch { /* nothing to clean up */ }
     } catch (e) {
-      setError((e as Error).message);
+      setError(errorText((e as Error).message, locale));
     } finally {
       setBusy(false);
     }
@@ -517,7 +520,7 @@ export function QuizRunner({
             <span className="rounded-md bg-accent-soft px-2 py-0.5 font-medium text-accent">
               {q.techniqueName}
             </span>
-            <span className="text-text-faint">{q.era}</span>
+            <span className="text-text-faint">{eraText(q.era, locale)}</span>
             <span className="ml-auto tabular-nums text-text-faint">{d.common.difficulty} {q.difficulty}</span>
           </div>
 

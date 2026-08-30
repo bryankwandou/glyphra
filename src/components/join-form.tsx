@@ -2,11 +2,13 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { useT } from '@/lib/i18n/client';
+import { useT, useLocale } from '@/lib/i18n/client';
+import { errorText } from '@/lib/i18n/errors';
 
 export function JoinForm() {
   const router = useRouter();
   const d = useT().join;
+  const locale = useLocale();
   const [code, setCode] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
@@ -40,7 +42,7 @@ export function JoinForm() {
       }
       router.push(`/q/${encodeURIComponent(code)}`);
     } catch (err) {
-      setError((err as Error).message);
+      setError(errorText((err as Error).message, locale));
       setBusy(false);
     }
   }

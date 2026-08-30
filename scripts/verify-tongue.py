@@ -57,7 +57,74 @@ ENGLISH = [
     "Assessment papers",
     "One problem set that circulates",
     "Every problem is built when you ask",
+    "Every letter moves a fixed number of places",
+    "Number the alphabet",
+    "Strip everything that is not a letter",
+    "Rotate the alphabet left by",
+    "Classical ciphertext is transmitted",
+    "The catalogue",
+    "Monoalphabetic substitution",
+    "Hashing and integrity",
+    "Modern symmetric",
+    "One-way — no decryption exists",
+    "Practise this",
+    "Paper setup",
+    "Build the papers",
+    "Number of papers",
+    "Master seed",
+    "Marking key",
+    "Shift (1-25)",
+    "Introductory",
+    "Research-grade",
 ]
+
+# A blocklist can only refuse a sentence someone already reported. This refuses
+# English structurally: these words carry no meaning in an Indonesian sentence,
+# so one of them on a page set to Indonesian means untranslated text, whatever
+# the sentence turns out to be. Deliberately function words only — a proper
+# name in quotes ("The Adventure of the Dancing Men") must not trip it.
+GIVEAWAYS = [
+    "which", "that", "each", "with", "from", "into", "would", "because",
+    "through", "these", "those", "their", "there", "when", "while", "after",
+    "before", "every", "another", "cannot", "should", "must", "does", "were",
+    "been", "using", "rather", "than", "same", "then",
+]
+GIVEAWAY_RE = re.compile(r"\b(" + "|".join(GIVEAWAYS) + r")\b", re.I)
+
+
+def english_sentences(text):
+    """Lines carrying English function words, with the word that gave them away."""
+    out = []
+    for line in text.split("\n"):
+        line = line.strip()
+        if len(line) < 12:
+            continue
+        hit = GIVEAWAY_RE.search(line)
+        if hit:
+            out.append((hit.group(0), line[:96]))
+    return out
+
+import io, os
+
+
+def admin_credentials():
+    """From the environment, or .env.local — which is written with a BOM."""
+    user = os.environ.get("GLYPHRA_ADMIN_USER")
+    pw = os.environ.get("GLYPHRA_ADMIN_PASSWORD")
+    if user and pw:
+        return user, pw
+    try:
+        raw = io.open(".env.local", encoding="utf-8-sig").read()
+    except OSError:
+        return None, None
+    found = {}
+    for line in raw.splitlines():
+        line = line.strip().lstrip("\ufeff")
+        if "=" in line and not line.startswith("#"):
+            k, v = line.split("=", 1)
+            found[k.strip().lstrip("\ufeff")] = v.strip().strip('"').strip("'")
+    return found.get("GLYPHRA_ADMIN_USER"), found.get("GLYPHRA_ADMIN_PASSWORD")
+
 
 passed, failures = 0, []
 
@@ -101,10 +168,16 @@ with sync_playwright() as pw:
         p = ctx.new_page()
         p.goto(f"{BASE}{path}", wait_until="networkidle")
         p.wait_for_timeout(1200)
-        found = english_in(visible_text(p))
-        chk(f"{path} carries no English", len(found), 0)
+        text = visible_text(p)
+        found = english_in(text)
+        chk(f"{path} carries no listed English", len(found), 0)
         for f in found:
             print(f'            still English: "{f}"')
+
+        loose = english_sentences(text)
+        chk(f"{path} carries no English sentence", len(loose), 0)
+        for word, line in loose[:6]:
+            print(f'            "{word}" in: {line}')
         p.close()
 
     # -------------------------------- 2. the practice panel, actually driven
@@ -217,6 +290,41 @@ with sync_playwright() as pw:
                     print(f'            still English: "{e}"')
 
     p.close()
+
+    # ------------------------------- 4. the pages behind an instructor sign-in
+    #
+    # /assess and /instructor were never visited by this gate, because reaching
+    # them needs a session. That is exactly why the assessment builder kept its
+    # own third copy of the family labels, in English, for so long: no gate
+    # could get to the page to see them.
+    print("\n  4. the instructor's own pages\n")
+
+    user, pw = admin_credentials()
+    if not user:
+        print("    skip  no GLYPHRA_ADMIN_USER configured; sign-in pages unchecked")
+    else:
+        p = ctx.new_page()
+        p.goto(BASE + "/instructor", wait_until="networkidle")
+        p.wait_for_timeout(1000)
+        p.locator("#u").fill(user)
+        p.locator("#p").fill(pw)
+        p.get_by_role("button", name=re.compile("Masuk|Sign in", re.I)).first.click()
+        p.wait_for_timeout(4000)
+
+        for path in ["/instructor", "/assess"]:
+            p.goto(BASE + path, wait_until="networkidle")
+            p.wait_for_timeout(1500)
+            text = visible_text(p)
+            found = english_in(text)
+            chk(path + " carries no listed English", len(found), 0)
+            for f in found:
+                print('            still English: "' + f + '"')
+            loose = english_sentences(text)
+            chk(path + " carries no English sentence", len(loose), 0)
+            for word, line in loose[:6]:
+                print('            "' + word + '" in: ' + line)
+        p.close()
+
     ctx.close()
     browser.close()
 

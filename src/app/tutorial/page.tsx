@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { currentLocale } from '@/lib/i18n';
+import { keyLabel } from '@/lib/i18n/key-labels';
 import { TutorialDemo } from '@/components/tutorial-demo';
 import { getTechnique } from '@/lib/ciphers';
 import {
@@ -171,7 +172,7 @@ export default async function TutorialPage() {
                     fields={t.keySpec.map((k) => ({
                       name: k.name,
                       kind: k.kind,
-                      label: k.label,
+                      label: keyLabel(k.label, l),
                       min: 'min' in k ? k.min : undefined,
                       max: 'max' in k ? k.max : undefined,
                     }))}

@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { requireInstructor } from '@/lib/auth';
 import { buildAssessment, LIMITS } from '@/lib/assessment';
+import { currentLocale } from '@/lib/i18n';
 import type { Difficulty, Family } from '@/lib/ciphers/types';
 
 export const runtime = 'nodejs';
@@ -49,6 +50,7 @@ export async function POST(request: Request) {
     techniqueIds: Array.isArray(body.techniqueIds) ? (body.techniqueIds as string[]) : undefined,
     families: Array.isArray(body.families) ? (body.families as Family[]) : undefined,
     difficulties: Array.isArray(body.difficulties) ? (body.difficulties as Difficulty[]) : undefined,
+    locale: await currentLocale(),
   });
 
   return NextResponse.json(assessment);

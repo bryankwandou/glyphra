@@ -1,10 +1,11 @@
 import Link from 'next/link';
 import { Mark } from './logo';
 import { CATALOGUE_SIZE, REVERSIBLE } from '@/lib/ciphers';
-import { t } from '@/lib/i18n';
+import { t, currentLocale } from '@/lib/i18n';
 
 export async function SiteFooter() {
   const d = await t();
+  const id = (await currentLocale()) === 'id';
 
   return (
     <footer className="no-print border-t border-border-subtle bg-bg-sunken">
@@ -34,7 +35,7 @@ export async function SiteFooter() {
               target="_blank"
               rel="noreferrer noopener"
             >
-              Source
+              {id ? 'Kode sumber' : 'Source'}
             </a>
           </nav>
         </div>
@@ -42,10 +43,12 @@ export async function SiteFooter() {
         <div className="mt-8 flex flex-wrap items-center gap-x-4 gap-y-2 border-t border-border-subtle pt-6 text-xs text-text-faint">
           <span className="tabular-nums">{CATALOGUE_SIZE} {d.home.statTechniques}</span>
           <span aria-hidden>·</span>
-          <span>Built by Bryan Kwandou</span>
+          <span>{id ? 'Dibuat oleh Bryan Kwandou' : 'Built by Bryan Kwandou'}</span>
           <span aria-hidden>·</span>
           <span>
-            Teaching material. Nothing here should protect anything that matters.
+            {id
+              ? 'Bahan ajar. Tidak ada apa pun di sini yang melindungi hal yang benar-benar penting.'
+              : 'Teaching material. Nothing here should protect anything that matters.'}
           </span>
         </div>
       </div>

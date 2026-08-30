@@ -194,9 +194,9 @@ const en: Dict = {
       transposition: 'Transposition',
       fractionation: 'Fractionation',
       encoding: 'Encoding and representation',
-      modern: 'Modern symmetric',
+      'modern-symmetric': 'Modern symmetric',
       asymmetric: 'Asymmetric and number theory',
-      hashing: 'Hashing and integrity',
+      hash: 'Hashing and integrity',
       steganography: 'Steganography',
     },
     levels: {
@@ -432,9 +432,9 @@ const id: Dict = {
       transposition: 'Transposisi',
       fractionation: 'Pemecahan huruf',
       encoding: 'Penyandian dan representasi',
-      modern: 'Simetris modern',
+      'modern-symmetric': 'Simetris modern',
       asymmetric: 'Asimetris dan teori bilangan',
-      hashing: 'Hash dan keutuhan data',
+      hash: 'Hash dan keutuhan data',
       steganography: 'Steganografi',
     },
     levels: {

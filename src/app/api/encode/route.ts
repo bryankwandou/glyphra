@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server';
 import { getTechnique, randomKey, makeRng } from '@/lib/ciphers';
 import type { Key } from '@/lib/ciphers/types';
+import { currentLocale } from '@/lib/i18n';
+import { translateSteps } from '@/lib/i18n/steps';
 
 export const runtime = 'nodejs';
 
@@ -15,6 +17,7 @@ export const runtime = 'nodejs';
  * encipher a sentence you actually wanted.
  */
 export async function POST(request: Request) {
+  const locale = await currentLocale();
   const body = await request.json().catch(() => ({}));
 
   const techniqueId = String(body.techniqueId ?? '');
@@ -61,7 +64,7 @@ export async function POST(request: Request) {
         key: filled,
         input: text,
         output: out.output,
-        steps: out.steps,
+        steps: translateSteps(out.steps, locale),
       });
     }
 
@@ -86,7 +89,7 @@ export async function POST(request: Request) {
       input: text,
       normalised,
       output: out.output,
-      steps: out.steps,
+      steps: translateSteps(out.steps, locale),
       verified,
     });
   } catch (e) {

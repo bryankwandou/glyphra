@@ -16,6 +16,8 @@ export default async function Home() {
   const families = familyCounts();
   const oneWay = CATALOGUE_SIZE - REVERSIBLE.length;
   const d = (await t()).home;
+  const bench = (await t()).bench;
+  const fam = (f: Family) => bench.families[f] ?? FAMILY_LABEL[f];
 
   return (
     <>
@@ -138,7 +140,7 @@ export default async function Home() {
             <div className="artefact slim-scroll text-[0.8125rem] leading-relaxed text-text-muted">
 {`Catalogue: ${CATALOGUE_SIZE} techniques
 
-${families.map(([f, c]) => `  ${FAMILY_LABEL[f].padEnd(30)}${String(c).padStart(3)}`).join('\n')}
+${families.map(([f, c]) => `  ${fam(f).padEnd(30)}${String(c).padStart(3)}`).join('\n')}
 
 Reversible: ${REVERSIBLE.length}   one-way: ${oneWay}
 Round trips attempted: ${REVERSIBLE.length * 12}
@@ -298,7 +300,7 @@ Round trips attempted: ${REVERSIBLE.length * 12}
                   {count}
                 </div>
                 <div className="mt-1 text-sm leading-snug text-text-muted group-hover:text-text">
-                  {FAMILY_LABEL[family]}
+                  {fam(family)}
                 </div>
               </Link>
             ))}

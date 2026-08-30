@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { useLocale } from '@/lib/i18n/client';
+import { errorText } from '@/lib/i18n/errors';
 import type { QuizMode } from '@/lib/db';
 
 const MODES: { value: QuizMode; en: string; id: string; noteEn: string; noteId: string }[] = [
@@ -40,6 +41,7 @@ const MODES: { value: QuizMode; en: string; id: string; noteEn: string; noteId: 
  */
 export function QuizClaim({ code, signedIn }: { code: string; signedIn: boolean }) {
   const id = useLocale() === 'id';
+  const locale = useLocale();
   const [mode, setMode] = useState<QuizMode>('open');
   const [title, setTitle] = useState('');
   const [state, setState] = useState<'idle' | 'busy' | 'done'>('idle');
@@ -76,7 +78,7 @@ export function QuizClaim({ code, signedIn }: { code: string; signedIn: boolean 
       if (!res.ok) throw new Error(data.error ?? 'That did not work.');
       setState('done');
     } catch (e) {
-      setError((e as Error).message);
+      setError(errorText((e as Error).message, locale));
       setState('idle');
     }
   };
