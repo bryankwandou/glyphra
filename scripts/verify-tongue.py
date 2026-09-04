@@ -259,7 +259,16 @@ with sync_playwright() as pw:
         "single fact has undone more ciphers than every clever attack combined")
     p.wait_for_timeout(400)
     p.get_by_role("button", name=re.compile("Soal baru|Buatkan|New problem", re.I)).first.click()
-    p.wait_for_timeout(8000)
+    # Wait for the problem to actually arrive rather than for a fixed number of
+    # seconds. A cold serverless function on production regularly takes longer
+    # than eight seconds, and this check then failed while the panel was fine —
+    # a gate that cries wolf is one people learn to ignore, which is the exact
+    # habit this whole file exists to break.
+    try:
+        p.wait_for_selector("text=/karakter/i", timeout=90_000)
+    except Exception:
+        pass
+    p.wait_for_timeout(2500)
 
     panel = p.get_by_role("button", name=re.compile("^(Buka|Open)$", re.I)).first
     chk("the analysis panel is on the page", panel.count() > 0, True)
