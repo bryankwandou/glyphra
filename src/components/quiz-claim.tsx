@@ -39,7 +39,16 @@ const MODES: { value: QuizMode; en: string; id: string; noteEn: string; noteId: 
  * gradebook on top of that, and takes nothing away from a code that stays
  * unclaimed.
  */
-export function QuizClaim({ code, signedIn }: { code: string; signedIn: boolean }) {
+export function QuizClaim({
+  code,
+  signedIn,
+  hasSession = false,
+}: {
+  code: string;
+  signedIn: boolean;
+  /* See quiz-composer: signed in by the shared login, short of an account. */
+  hasSession?: boolean;
+}) {
   const id = useLocale() === 'id';
   const locale = useLocale();
   const [mode, setMode] = useState<QuizMode>('open');
@@ -55,7 +64,13 @@ export function QuizClaim({ code, signedIn }: { code: string; signedIn: boolean 
             ? 'Kode ini terbuka untuk siapa pun yang memegangnya, dan hasilnya tidak dikumpulkan. '
             : 'This code is open to anyone holding it, and results are not collected. '}
           <Link href="/account" className="text-accent hover:underline">
-            {id ? 'Masuk' : 'Sign in'}
+            {hasSession
+              ? id
+                ? 'Tambahkan akun'
+                : 'Add an account'
+              : id
+                ? 'Masuk'
+                : 'Sign in'}
           </Link>
           {id
             ? ' kalau Anda ingin membatasi siapa yang boleh mengerjakannya, menutupnya setelah terpecahkan, atau melihat nilainya.'

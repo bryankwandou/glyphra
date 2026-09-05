@@ -14,7 +14,13 @@ import { QuizClaim } from './quiz-claim';
  * is no row to create, so there is nothing to ask a server for. Changing a
  * setting simply produces a different code.
  */
-export function QuizShare({ signedIn = false }: { signedIn?: boolean }) {
+export function QuizShare({
+  signedIn = false,
+  hasSession = false,
+}: {
+  signedIn?: boolean;
+  hasSession?: boolean;
+}) {
   const d = useT().share;
   const [questions, setQuestions] = useState(6);
   const [low, setLow] = useState<Difficulty>(1);
@@ -127,7 +133,7 @@ export function QuizShare({ signedIn = false }: { signedIn?: boolean }) {
           </p>
         </div>
 
-        <QuizClaim code={code} signedIn={signedIn} />
+        <QuizClaim code={code} signedIn={signedIn} hasSession={hasSession} />
 
         <div className="mt-5 flex flex-wrap justify-center gap-2">
           <button

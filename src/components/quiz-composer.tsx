@@ -35,9 +35,13 @@ interface Built {
 export function QuizComposer({
   techniques,
   signedIn,
+  hasSession = false,
 }: {
   techniques: Technique[];
   signedIn: boolean;
+  /* A shared instructor login is already open. Storage still needs an
+     account, but the invitation must not read as "you are not signed in". */
+  hasSession?: boolean;
 }) {
   const id = useLocale() === 'id';
   const locale = useLocale();
@@ -120,7 +124,13 @@ export function QuizComposer({
           href="/account"
           className="mt-4 inline-block rounded-xl bg-accent px-5 py-2.5 text-sm font-medium text-accent-text transition-colors hover:bg-accent-hover"
         >
-          {id ? 'Masuk atau daftar' : 'Sign in or sign up'}
+          {hasSession
+            ? id
+              ? 'Tambahkan akun'
+              : 'Add an account'
+            : id
+              ? 'Masuk atau daftar'
+              : 'Sign in or sign up'}
         </Link>
       </div>
     );

@@ -43,11 +43,12 @@ export default async function AssessPage() {
       </div>
       <AssessmentBuilder catalogue={catalogueSummary()} />
       <div className="mx-auto max-w-5xl px-5 pb-12">
-        <QuizShare signedIn={signedIn} />
+        <QuizShare signedIn={signedIn} hasSession={Boolean(session)} />
 
         <div className="mt-8">
           <QuizComposer
             signedIn={signedIn}
+            hasSession={Boolean(session)}
             techniques={REVERSIBLE.filter((t) => PROBLEM_ROSTER.includes(t.id) && !UNUSABLE_AS_PROBLEMS.has(t.id)).map((t) => ({
               id: t.id,
               name: t.name,
@@ -60,6 +61,7 @@ export default async function AssessPage() {
         <div className="mt-8">
           <ProblemMaker
             signedIn={signedIn}
+            hasSession={Boolean(session)}
             techniques={REVERSIBLE.filter((t) => PROBLEM_ROSTER.includes(t.id) && !UNUSABLE_AS_PROBLEMS.has(t.id)).map((t) => ({
               id: t.id,
               name: t.name,
