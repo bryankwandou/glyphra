@@ -258,22 +258,32 @@ with sync_playwright() as pw:
         "The letters of a language do not appear with equal frequency and that "
         "single fact has undone more ciphers than every clever attack combined")
     p.wait_for_timeout(400)
+    cipher = p.locator(".cipher-text").first
+    before = cipher.inner_text() if cipher.count() else ""
     p.get_by_role("button", name=re.compile("Soal baru|Buatkan|New problem", re.I)).first.click()
-    # Wait for the problem to actually arrive rather than for a fixed number of
-    # seconds. A cold serverless function on production regularly takes longer
-    # than eight seconds, and this check then failed while the panel was fine —
-    # a gate that cries wolf is one people learn to ignore, which is the exact
-    # habit this whole file exists to break.
+    # Wait for the ciphertext itself to change. Waiting for "karakter" returned
+    # at once, because the five-letter problem from section 2 already said it —
+    # and the panel, correctly, hides itself on five letters, so the gate
+    # reported the panel missing while it was looking at the old problem.
     try:
-        p.wait_for_selector("text=/karakter/i", timeout=90_000)
+        p.wait_for_function(
+            "(b) => { const e = document.querySelector('.cipher-text');"
+            " return !!e && e.textContent.trim() !== '' && e.textContent !== b; }",
+            arg=before, timeout=90_000)
+        arrived = True
     except Exception:
-        pass
-    p.wait_for_timeout(2500)
+        arrived = False
+    chk("the longer problem actually arrived", arrived, True)
+    p.wait_for_timeout(800)
 
     panel = p.get_by_role("button", name=re.compile("^(Buka|Open)$", re.I)).first
-    chk("the analysis panel is on the page", panel.count() > 0, True)
+    if not arrived:
+        print("            the panel checks are skipped: they would read the old,"
+              " five-letter problem, where the panel is rightly hidden")
+    else:
+        chk("the analysis panel is on the page", panel.count() > 0, True)
 
-    if panel.count():
+    if arrived and panel.count():
         panel.click()
         p.wait_for_timeout(1200)
         after2 = visible_text(p)
@@ -314,13 +324,29 @@ with sync_playwright() as pw:
     else:
         p = ctx.new_page()
         p.goto(BASE + "/instructor", wait_until="networkidle")
-        p.wait_for_timeout(1000)
+        # An idle network is not a live page. React has to hydrate before the
+        # submit button does anything, and this gate used to fill the form and
+        # click straight after networkidle — the click landed on nothing, the
+        # session was never created, and the two pages below were then read in
+        # their signed-out state and passed. A gate that checks the sign-in
+        # screen while reporting on the instructor's page is the same failure
+        # this whole file was written to stop, committed by the file itself.
+        p.wait_for_selector("#u", state="visible")
+        p.wait_for_timeout(1500)
         p.locator("#u").fill(user)
         p.locator("#p").fill(pw)
-        p.get_by_role("button", name=re.compile("Masuk|Sign in", re.I)).first.click()
+        p.get_by_role("button", name=re.compile(r"^\s*(Masuk|Sign in)\s*$", re.I)).first.click()
         p.wait_for_timeout(4000)
 
-        for path in ["/instructor", "/assess"]:
+        # Prove the session exists before trusting a single check that needs it.
+        p.goto(BASE + "/instructor", wait_until="networkidle")
+        p.wait_for_timeout(1500)
+        signed_in = "Tampilan pengajar" in visible_text(p) or "Instructor view" in visible_text(p)
+        chk("the sign-in actually took", signed_in, True)
+        if not signed_in:
+            print("            the two checks below would read the sign-in screen; skipping")
+
+        for path in ([] if not signed_in else ["/instructor", "/assess"]):
             p.goto(BASE + path, wait_until="networkidle")
             p.wait_for_timeout(1500)
             text = visible_text(p)
