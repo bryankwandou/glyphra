@@ -32,6 +32,10 @@ const ALLOWED = new Map<string, string>([
   ['src/lib/auth.ts', 'defines both, and currentViewer is built on currentSession'],
   ['src/app/api/auth/signin/route.ts', 'issues the legacy cookie'],
   ['src/app/api/auth/signout/route.ts', 'clears the legacy cookie'],
+  // currentViewer() falls through to currentAccount(), which lands here when
+  // there is no account cookie — asking currentViewer() back would recurse
+  // forever for anybody not signed in.
+  ['src/lib/accounts.ts', 'maps the legacy instructor onto an account row'],
 ]);
 
 function walk(dir: string, out: string[] = []): string[] {
