@@ -4,6 +4,7 @@ import { createProblem, hasDb } from '@/lib/db';
 import { buildProblem } from '@/lib/problem';
 import { encodeProblemCode, randomProblemSeed, PROBLEM_ROSTER } from '@/lib/problem-code';
 import { UNUSABLE_AS_PROBLEMS } from '@/lib/generator';
+import { currentLocale } from '@/lib/i18n';
 
 export const runtime = 'nodejs';
 
@@ -67,5 +68,10 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'Could not record that problem.' }, { status: 409 });
   }
 
-  return NextResponse.json({ problem: row, preview: built.public });
+  // The preview is rebuilt in the reader's language. The ciphertext does not
+  // depend on locale — only the labels and the instruction line do — so this is
+  // the same problem the QR opens, worded the way the QR page words it.
+  const locale = (await currentLocale()) === 'id' ? 'id' : 'en';
+  const preview = buildProblem(code, locale)?.public ?? built.public;
+  return NextResponse.json({ problem: row, preview });
 }

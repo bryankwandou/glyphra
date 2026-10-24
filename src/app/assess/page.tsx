@@ -25,6 +25,10 @@ export default async function AssessPage() {
   const d = await t();
   if (!session) redirect('/instructor');
 
+  const problemTechniques = REVERSIBLE.filter(
+    (t) => PROBLEM_ROSTER.includes(t.id) && !UNUSABLE_AS_PROBLEMS.has(t.id),
+  ).map((t) => ({ id: t.id, name: t.name, family: t.family, difficulty: t.difficulty }));
+
   return (
     <>
       <div className="no-print border-b border-border-subtle">
@@ -41,34 +45,18 @@ export default async function AssessPage() {
           </p>
         </div>
       </div>
+      {/* First on the page because it is the thing most instructors came for:
+          pick one method, get one QR, hand it out. It used to sit below three
+          other tools, which is most of why this page read as complicated. */}
+      <div className="no-print mx-auto max-w-5xl px-5 pt-8">
+        <ProblemMaker signedIn={signedIn} hasSession={Boolean(session)} techniques={problemTechniques} />
+      </div>
       <AssessmentBuilder catalogue={catalogueSummary()} />
       <div className="mx-auto max-w-5xl px-5 pb-12">
         <QuizShare signedIn={signedIn} hasSession={Boolean(session)} />
 
         <div className="mt-8">
-          <QuizComposer
-            signedIn={signedIn}
-            hasSession={Boolean(session)}
-            techniques={REVERSIBLE.filter((t) => PROBLEM_ROSTER.includes(t.id) && !UNUSABLE_AS_PROBLEMS.has(t.id)).map((t) => ({
-              id: t.id,
-              name: t.name,
-              family: t.family,
-              difficulty: t.difficulty,
-            }))}
-          />
-        </div>
-
-        <div className="mt-8">
-          <ProblemMaker
-            signedIn={signedIn}
-            hasSession={Boolean(session)}
-            techniques={REVERSIBLE.filter((t) => PROBLEM_ROSTER.includes(t.id) && !UNUSABLE_AS_PROBLEMS.has(t.id)).map((t) => ({
-              id: t.id,
-              name: t.name,
-              family: t.family,
-              difficulty: t.difficulty,
-            }))}
-          />
+          <QuizComposer signedIn={signedIn} hasSession={Boolean(session)} techniques={problemTechniques} />
         </div>
       </div>
     </>

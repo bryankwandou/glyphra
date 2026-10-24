@@ -9,7 +9,7 @@ against the evidence instead of trusted.
 
   python scripts/verify-court.py http://localhost:3000
 """
-import sys, time, re, json, subprocess
+import sys, time, re, json, subprocess, unicodedata
 from playwright.sync_api import sync_playwright
 
 BASE = sys.argv[1] if len(sys.argv) > 1 else "http://localhost:3000"
@@ -286,7 +286,10 @@ with sync_playwright() as pw:
         served = ctx.request.get(f"{BASE}/api/quiz?code={ccode}").json()["questions"]
         for i, want in enumerate(plan):
             got = served[i]["techniqueName"] if i < len(served) else "missing"
-            ok = want.split("-")[0].lower() in got.lower()
+            # Accents folded: the served name is "Vigenère cipher", and a plain
+            # substring test failed it while the paper was exactly right.
+            flat = unicodedata.normalize("NFKD", got).encode("ascii", "ignore").decode().lower()
+            ok = want.split("-")[0].lower() in flat
             chk(f"  question {i+1} is the {want} that was asked for", ok, True)
 
     # ---------------------------------------------------------------------

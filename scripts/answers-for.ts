@@ -11,7 +11,7 @@
  */
 import { buildComposed } from '../src/lib/composed';
 import { buildProblem } from '../src/lib/problem';
-import { buildQuiz } from '../src/lib/quiz';
+import { buildQuiz, quizAnswers } from '../src/lib/quiz';
 
 (async () => {
   const [kind, code, who = ''] = process.argv.slice(2);
@@ -31,9 +31,13 @@ import { buildQuiz } from '../src/lib/quiz';
     return;
   }
 
-  // A band quiz keeps its answers behind markQuiz rather than exposing them on
-  // the built object, and that is the right shape — nothing that renders a quiz
-  // should be able to reach its key. Nothing here needs them today.
+  // A band quiz keeps its answers off the built object, so nothing that renders
+  // a quiz can reach its key. quizAnswers rebuilds them from the code alone —
+  // still no question put to the server. Returning [] here once made the
+  // answer-key check in verify-court fail with "got 0, want 4".
   const band = buildQuiz(code);
-  console.log(JSON.stringify({ answers: [], questions: band ? band.questions.length : 0 }));
+  console.log(JSON.stringify({
+    answers: quizAnswers(code) ?? [],
+    questions: band ? band.questions.length : 0,
+  }));
 })();

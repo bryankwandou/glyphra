@@ -164,10 +164,44 @@ export async function issueSession(account: Account): Promise<string> {
     .sign(secret());
 }
 
+/**
+ * The owner row behind the instructor sign-in.
+ *
+ * Making a QR, composing a paper and keeping a history all need an owner id,
+ * and only accounts had one. So an admin who signed in on /instructor was shown
+ * "add an account" at the bottom of /assess — signed in, and asked to sign in
+ * again before the one thing the page is for. The instructor login now owns a
+ * row of its own. Its password hash is not a scrypt string, so verifyPassword
+ * always refuses it: nobody can reach this row through the account form.
+ */
+async function instructorAccount(): Promise<Account | null> {
+  if (!hasDb()) return null;
+  const { currentSession } = await import('./auth');
+  const session = await currentSession();
+  if (!session) return null;
+
+  const email = `${session.username}@instructor.glyphra`;
+  const key = email.toLowerCase();
+  await db()`
+    INSERT INTO accounts (id, email, email_key, display_name, password_hash)
+    VALUES (${`instructor:${key}`}, ${email}, ${key}, ${session.username}, 'locked')
+    ON CONFLICT (email_key) DO NOTHING
+  `;
+  const rows = (await db()`
+    SELECT id, email, display_name FROM accounts WHERE email_key = ${key} LIMIT 1
+  `) as Record<string, unknown>[];
+  if (!rows.length) return null;
+  return {
+    id: String(rows[0].id),
+    email: String(rows[0].email),
+    displayName: String(rows[0].display_name),
+  };
+}
+
 export async function currentAccount(): Promise<Account | null> {
   const store = await cookies();
   const token = store.get(ACCOUNT_COOKIE)?.value;
-  if (!token) return null;
+  if (!token) return instructorAccount().catch(() => null);
   try {
     const { payload } = await jwtVerify(token, secret());
     if (!payload.sub) return null;
@@ -177,7 +211,8 @@ export async function currentAccount(): Promise<Account | null> {
       displayName: String(payload.name ?? ''),
     };
   } catch {
-    // Expired or tampered with. Both mean "not signed in".
-    return null;
+    // Expired or tampered with. Both mean "not signed in" by account — the
+    // instructor sign-in may still hold.
+    return instructorAccount().catch(() => null);
   }
 }
