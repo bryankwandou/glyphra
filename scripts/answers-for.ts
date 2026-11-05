@@ -34,7 +34,7 @@ import { buildQuiz, quizAnswers } from '../src/lib/quiz';
   // A band quiz keeps its answers off the built object, so nothing that renders
   // a quiz can reach its key. quizAnswers rebuilds them from the code alone —
   // still no question put to the server. Returning [] here once made the
-  // answer-key check in verify-court fail with "got 0, want 4".
+  // answer-key check in verify-checklist fail with "got 0, want 4".
   const band = buildQuiz(code);
   console.log(JSON.stringify({
     answers: quizAnswers(code) ?? [],

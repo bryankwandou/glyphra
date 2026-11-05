@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { buildProblem } from '@/lib/problem';
+import { canonicalProblemCode } from '@/lib/problem-code';
 import { ProblemRunner } from '@/components/problem-runner';
 import { problemRow, hasDb } from '@/lib/db';
 import { currentLocale } from '@/lib/i18n';
@@ -13,8 +14,14 @@ export const metadata: Metadata = {
 
 export default async function ProblemPage({ params }: { params: Promise<{ code: string }> }) {
   const { code } = await params;
-  const built = buildProblem(decodeURIComponent(code), (await currentLocale()) === 'id' ? 'id' : 'en');
   const id = (await currentLocale()) === 'id';
+  const canonical = canonicalProblemCode(decodeURIComponent(code));
+
+  // Same rule as the quiz page: the page is a door too, so the solved state is
+  // checked here rather than only when an answer is posted. Otherwise somebody
+  // works the whole problem and is refused at the end.
+  const row = canonical && hasDb() ? await problemRow(canonical) : null;
+  const built = canonical ? buildProblem(canonical, id ? 'id' : 'en', row?.answer) : null;
 
   if (!built) {
     return (
@@ -36,11 +43,6 @@ export default async function ProblemPage({ params }: { params: Promise<{ code: 
       </div>
     );
   }
-
-  // Same rule as the quiz page: the page is a door too, so the solved state is
-  // checked here rather than only when an answer is posted. Otherwise somebody
-  // works the whole problem and is refused at the end.
-  const row = hasDb() ? await problemRow(built.public.code) : null;
 
   if (row?.solvedAt) {
     return (
@@ -68,10 +70,6 @@ export default async function ProblemPage({ params }: { params: Promise<{ code: 
   }
 
   return (
-    <ProblemRunner
-      problem={built.public}
-      tracked={!!row}
-      label={row?.label ?? null}
-    />
+    <ProblemRunner problem={built.public} tracked={!!row} />
   );
 }

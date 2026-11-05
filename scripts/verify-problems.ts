@@ -1,7 +1,7 @@
 /**
  * One code, one problem, one technique — and it stays that way.
  *
- * The judge's question is the right one to ask of any generator: if the tool
+ * This is the right question to ask of any generator: if the tool
  * says a problem uses the Playfair cipher, what stops it from having quietly
  * produced something else? For single-problem codes the answer is that the
  * technique is not a label attached after generation — it is a field inside the
@@ -17,7 +17,9 @@ import {
   canonicalProblemCode, randomProblemSeed,
 } from '../src/lib/problem-code';
 import { REVERSIBLE } from '../src/lib/ciphers';
-import { generateChallenge } from '../src/lib/generator';
+import { generateChallenge, UNUSABLE_AS_PROBLEMS } from '../src/lib/generator';
+import { getTechnique } from '../src/lib/ciphers';
+import { buildProblem, markProblem, cleanChosenAnswer } from '../src/lib/problem';
 
 const failures: string[] = [];
 const fail = (what: string, detail: string) => failures.push(`[${what}] ${detail}`);
@@ -154,9 +156,54 @@ if (caught / (caught + missed) < 0.985) {
   fail('checksum', `only ${((caught / 400) * 100).toFixed(1)}% of single-character typos were caught`);
 }
 
+/* -------------------------------- the instructor's own word is the answer --- */
+
+/**
+ * An instructor types TES and the student must be able to answer TES, on every
+ * method the form offers. This was never checked: every test used a random
+ * message, so the form could only ever produce an answer nobody had chosen.
+ */
+const WORDS = ['TES', 'A', 'JAJAN', 'HALO DUNIA', 'KRIPTOGRAFI ITU MENYENANGKAN UNTUK DIPELAJARI BERSAMA'];
+let chosenChecked = 0;
+for (const techniqueId of PROBLEM_ROSTER) {
+  if (UNUSABLE_AS_PROBLEMS.has(techniqueId)) continue;
+  for (const word of WORDS) {
+    const where = `${techniqueId} / ${word}`;
+    const code = encodeProblemCode({ techniqueId, seed: 4242, disclose: true })!;
+    let built;
+    try {
+      built = buildProblem(code, 'id', word);
+    } catch (e) {
+      fail('chosen answer', `${where} threw: ${(e as Error).message}`);
+      continue;
+    }
+    if (!built) { fail('chosen answer', `${where} built nothing`); continue; }
+    chosenChecked++;
+
+    // Deciphered with the method itself, not read back from what was stored.
+    const { publicPart, solution } = generateChallenge({
+      techniqueIds: [techniqueId], seed: `problem:4242`, discloseKey: true, locale: 'id', plaintext: word,
+    });
+    const back = getTechnique(techniqueId)!.decode(publicPart.ciphertext, solution.key).output;
+    if (!markProblem(code, back, word)?.correct) fail('chosen answer', `${where} deciphers to "${back}", which is not accepted`);
+    if (!markProblem(code, word, word)?.correct) fail('chosen answer', `${where} refuses the word itself`);
+    if (markProblem(code, 'SALAH', word)?.correct) fail('chosen answer', `${where} accepts a wrong answer`);
+    if (markProblem(code, word)?.correct) fail('chosen answer', `${where} accepted the word against a random problem`);
+    if (word.length > 2 && built.public.prompt.includes(word)) fail('chosen answer', `${where} prints the answer in the prompt`);
+    if (buildProblem(code, 'id', word)!.public.ciphertext !== built.public.ciphertext) {
+      fail('chosen answer', `${where} is not the same problem twice`);
+    }
+  }
+}
+for (const bad of ['', '   ', 'TES1', 'T\u00c9S', 'X'.repeat(201)]) {
+  if (cleanChosenAnswer(bad) !== null) fail('chosen answer', `"${bad}" should be refused`);
+}
+if (cleanChosenAnswer('  tes   dua ') !== 'TES DUA') fail('chosen answer', 'the answer is not normalised');
+
 /* -------------------------------------------------------------------- output */
 
 console.log('\nSingle-problem codes\n');
+console.log(`  chosen answers checked         ${chosenChecked}`);
 console.log(`  roster entries                 ${PROBLEM_ROSTER.length}`);
 console.log(`  frozen prefix verified         ${FROZEN_PREFIX.length}`);
 console.log(`  codes round-tripped            ${encoded}`);

@@ -77,6 +77,7 @@ export default async function InstructorPage({
                   techniqueId: p.techniqueId,
                   techniqueName: getTechnique(p.techniqueId)?.name ?? p.techniqueId,
                   label: p.label,
+                  answer: p.answer,
                   disclose: p.disclose,
                   solvedAt: p.solvedAt,
                   solvedBy: p.solvedBy,

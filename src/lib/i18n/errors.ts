@@ -37,6 +37,10 @@ const ID: Readonly<Record<string, string>> = Object.freeze({
   'Only the person who set this quiz can open it.':
     'Hanya orang yang menyusun kuis ini yang boleh membukanya.',
   'Sign in first.': 'Masuk dulu.',
+  'The answer can only use letters and spaces, up to 200 characters.':
+    'Jawaban hanya boleh berisi huruf dan spasi, paling banyak 200 karakter.',
+  'That word reads the same once enciphered with this method. Choose another word or method.':
+    'Kata itu tetap sama setelah disandikan dengan metode ini. Pilih kata atau metode lain.',
   'Sign-in failed.': 'Masuk gagal.',
   'Somebody solved it a moment before you did.':
     'Seseorang memecahkannya sesaat sebelum Anda.',

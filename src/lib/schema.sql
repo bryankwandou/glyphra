@@ -85,6 +85,11 @@ CREATE TABLE IF NOT EXISTS problems (
 
 CREATE INDEX IF NOT EXISTS problems_owner_idx ON problems (owner_id, created_at DESC);
 
+-- The word the instructor chose as the answer. Null means the message comes from
+-- the seed, as every problem made before this column did. It lives here and not
+-- in the code because the code is printed where students can read it.
+ALTER TABLE problems ADD COLUMN IF NOT EXISTS answer TEXT;
+
 -- A manually composed quiz: the method for each question, in order.
 --
 -- This is the one thing here that genuinely cannot be stateless, and the trade

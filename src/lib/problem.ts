@@ -25,7 +25,11 @@ export interface BuiltProblem {
  * get the same technique name the page prints. Nothing is stored, so the
  * problem is identical on any machine that has the code.
  */
-export function buildProblem(input: string, locale: 'en' | 'id' = 'en'): { public: BuiltProblem; answer: string } | null {
+export function buildProblem(
+  input: string,
+  locale: 'en' | 'id' = 'en',
+  chosenAnswer?: string | null,
+): { public: BuiltProblem; answer: string } | null {
   const config = decodeProblemCode(input);
   if (!config) return null;
 
@@ -37,6 +41,7 @@ export function buildProblem(input: string, locale: 'en' | 'id' = 'en'): { publi
     seed: `problem:${config.seed}`,
     discloseKey: config.disclose,
     locale,
+    plaintext: chosenAnswer ?? undefined,
   });
 
   // The generator honours a named technique outright, but this is the one place
@@ -57,7 +62,9 @@ export function buildProblem(input: string, locale: 'en' | 'id' = 'en'): { publi
       prompt: publicPart.prompt,
       ciphertext: publicPart.ciphertext,
       keyFields: publicPart.keyFields,
-      plaintextLength: publicPart.plaintextLength,
+      // Counted from the instructor's word, because a method's padding (Playfair
+      // turns TES into TESX) is not something the student is being asked to type.
+      plaintextLength: chosenAnswer ? chosenAnswer.replace(/\s/g, '').length : publicPart.plaintextLength,
       disclose: config.disclose,
     },
     answer: solution.plaintext,
@@ -74,11 +81,25 @@ export function buildProblem(input: string, locale: 'en' | 'id' = 'en'): { publi
 export function markProblem(
   code: string,
   submitted: string,
+  chosenAnswer?: string | null,
 ): { correct: boolean; proximity: number } | null {
-  const built = buildProblem(code);
+  const built = buildProblem(code, 'en', chosenAnswer);
   if (!built) return null;
   const graded = gradeAnswer(submitted, built.answer);
-  return { correct: graded.correct, proximity: graded.similarity };
+  // The instructor's own spelling counts too. Playfair folds J into I, so a word
+  // with a J deciphers with an I in it, and either form is the right answer.
+  const typed = chosenAnswer ? gradeAnswer(submitted, chosenAnswer).correct : false;
+  return { correct: graded.correct || typed, proximity: graded.similarity };
+}
+
+/**
+ * The instructor's answer in the one form everything keys on, or null if it
+ * cannot be used. Letters and spaces only: the methods work on letters, so a
+ * digit or an accent would be dropped and the student could never type it back.
+ */
+export function cleanChosenAnswer(input: string): string | null {
+  const text = input.trim().replace(/\s+/g, ' ').toUpperCase();
+  return /^[A-Z ]{1,200}$/.test(text) ? text : null;
 }
 
 export type { ProblemConfig };

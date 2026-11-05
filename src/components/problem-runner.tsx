@@ -17,11 +17,9 @@ import type { BuiltProblem } from '@/lib/problem';
 export function ProblemRunner({
   problem,
   tracked,
-  label,
 }: {
   problem: BuiltProblem;
   tracked: boolean;
-  label: string | null;
 }) {
   const id = useLocale() === 'id';
   const locale = useLocale();
@@ -131,8 +129,6 @@ export function ProblemRunner({
             </span>
           )}
         </div>
-
-        {label && <p className="mt-2 text-sm text-text-muted">{label}</p>}
 
         <h1 className="mt-3 text-2xl font-semibold tracking-[-0.02em]">
           {problem.techniqueName}

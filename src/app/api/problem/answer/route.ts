@@ -32,7 +32,7 @@ export async function POST(request: Request) {
     );
   }
 
-  const marked = markProblem(code, answer);
+  const marked = markProblem(code, answer, row?.answer);
   if (!marked) {
     return NextResponse.json({ error: 'That code does not open a problem.' }, { status: 404 });
   }

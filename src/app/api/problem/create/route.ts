@@ -1,12 +1,14 @@
 import { NextResponse } from 'next/server';
 import { currentAccount } from '@/lib/accounts';
 import { createProblem, hasDb } from '@/lib/db';
-import { buildProblem } from '@/lib/problem';
+import { buildProblem, cleanChosenAnswer } from '@/lib/problem';
 import { encodeProblemCode, randomProblemSeed, PROBLEM_ROSTER } from '@/lib/problem-code';
 import { UNUSABLE_AS_PROBLEMS } from '@/lib/generator';
 import { currentLocale } from '@/lib/i18n';
 
 export const runtime = 'nodejs';
+
+const squash = (s: string) => s.replace(/\s+/g, '').toUpperCase();
 
 /**
  * Mint one code for one problem, locked to one technique.
@@ -28,6 +30,15 @@ export async function POST(request: Request) {
   const techniqueId = String(body.techniqueId ?? '');
   const disclose = body.disclose === true;
   const label = body.label ? String(body.label).slice(0, 120) : null;
+
+  const typed = String(body.answer ?? '').trim();
+  const answer = typed ? cleanChosenAnswer(typed) : null;
+  if (typed && !answer) {
+    return NextResponse.json(
+      { error: 'The answer can only use letters and spaces, up to 200 characters.' },
+      { status: 400 },
+    );
+  }
 
   if (!PROBLEM_ROSTER.includes(techniqueId)) {
     return NextResponse.json({ error: 'Unknown technique.' }, { status: 400 });
@@ -53,7 +64,17 @@ export async function POST(request: Request) {
   let built: ReturnType<typeof buildProblem> = null;
   for (let attempt = 0; attempt < 8 && !built; attempt++) {
     code = encodeProblemCode({ techniqueId, seed: randomProblemSeed(), disclose });
-    built = code ? buildProblem(code) : null;
+    built = code ? buildProblem(code, 'en', answer) : null;
+    // A word can read the same enciphered (KATAK reversed). Another seed may
+    // change that where the method has a key; a keyless method never will.
+    if (built && answer && squash(built.public.ciphertext) === squash(answer)) built = null;
+  }
+
+  if (answer && !built) {
+    return NextResponse.json(
+      { error: 'That word reads the same once enciphered with this method. Choose another word or method.' },
+      { status: 400 },
+    );
   }
 
   if (!code || !built) {
@@ -63,7 +84,7 @@ export async function POST(request: Request) {
     );
   }
 
-  const row = await createProblem(code, account.id, techniqueId, disclose, label);
+  const row = await createProblem(code, account.id, techniqueId, disclose, label, answer);
   if (!row || row.ownerId !== account.id) {
     return NextResponse.json({ error: 'Could not record that problem.' }, { status: 409 });
   }
@@ -72,6 +93,6 @@ export async function POST(request: Request) {
   // depend on locale — only the labels and the instruction line do — so this is
   // the same problem the QR opens, worded the way the QR page words it.
   const locale = (await currentLocale()) === 'id' ? 'id' : 'en';
-  const preview = buildProblem(code, locale)?.public ?? built.public;
-  return NextResponse.json({ problem: row, preview });
+  const preview = buildProblem(code, locale, answer)?.public ?? built.public;
+  return NextResponse.json({ problem: row, preview, answer: answer ?? built.answer });
 }

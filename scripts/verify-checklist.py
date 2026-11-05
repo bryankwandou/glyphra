@@ -7,13 +7,13 @@ watched. Each section names the complaint it is answering, and each check
 prints what it actually saw rather than a tick, so a claim can be read back
 against the evidence instead of trusted.
 
-  python scripts/verify-court.py http://localhost:3000
+  python scripts/verify-checklist.py http://localhost:3000
 """
 import sys, time, re, json, subprocess, unicodedata
 from playwright.sync_api import sync_playwright
 
 BASE = sys.argv[1] if len(sys.argv) > 1 else "http://localhost:3000"
-STAMP = f"court{int(time.time())}"
+STAMP = f"uji{int(time.time())}"
 
 passed, failures = 0, []
 
@@ -123,7 +123,7 @@ with sync_playwright() as pw:
     up = ctx.request.post(f"{BASE}/api/account/signup", data={
         "email": f"{STAMP}@example.invalid",
         "password": "a-long-enough-password",
-        "displayName": "Court Check",
+        "displayName": "Akun Uji",
     })
     chk("sign-up succeeds", up.ok, True)
 
@@ -143,7 +143,7 @@ with sync_playwright() as pw:
         p2 = ctx.new_page()
         p2.goto(f"{BASE}{path}", wait_until="networkidle")
         body = p2.inner_text("body")
-        signed = "Court Check" in body or "Keluar" in body or "Sign out" in body
+        signed = "Akun Uji" in body or "Keluar" in body or "Sign out" in body
         chk(f"still signed in at {path}", signed, True)
         p2.close()
 
@@ -153,7 +153,7 @@ with sync_playwright() as pw:
     fresh = browser.new_context(storage_state=state)
     fp = fresh.new_page()
     fp.goto(f"{BASE}/instructor", wait_until="networkidle")
-    chk("survives a browser restart", "Court Check" in fp.inner_text("body"), True)
+    chk("survives a browser restart", "Akun Uji" in fp.inner_text("body"), True)
     fp.close()
     fresh.close()
 
@@ -220,7 +220,7 @@ with sync_playwright() as pw:
     # Answer three of four correctly, so there is a wrong one whose key must appear.
     submitted = answers[:3] + ["DEFINITELY NOT THE MESSAGE"]
     graded = ctx.request.post(f"{BASE}/api/quiz/grade", data={
-        "code": qcode, "answers": submitted, "name": "Court Pupil",
+        "code": qcode, "answers": submitted, "name": "Siswa Uji",
     })
     g = graded.json()
     chk("three of four are marked correct", g["correct"], 3)
@@ -243,7 +243,7 @@ with sync_playwright() as pw:
     # ---------------------------------------------------------------------
 
     claimed = ctx.request.post(f"{BASE}/api/quiz/claim", data={
-        "code": qcode, "mode": "open", "title": "court exhibit",
+        "code": qcode, "mode": "open", "title": "kuis uji",
     })
     chk("the quiz is claimed, so attempts are recorded", claimed.ok, True)
 

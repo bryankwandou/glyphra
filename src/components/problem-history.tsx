@@ -10,6 +10,7 @@ export interface ProblemEntry {
   techniqueId: string;
   techniqueName: string;
   label: string | null;
+  answer: string | null;
   disclose: boolean;
   solvedAt: string | null;
   solvedBy: string | null;
@@ -96,6 +97,11 @@ export function ProblemHistory({ problems }: { problems: ProblemEntry[] }) {
                 </span>
                 <span className="text-sm">{p.techniqueName}</span>
                 {p.label && <span className="text-xs text-text-faint">{p.label}</span>}
+                {p.answer && (
+                  <span className="text-xs text-text-muted">
+                    {id ? 'jawaban: ' : 'answer: '}<span className="font-mono">{p.answer}</span>
+                  </span>
+                )}
                 <span
                   className={`ml-auto rounded-md px-2 py-0.5 text-xs ${
                     solved ? 'bg-ok-soft text-ok' : 'bg-bg-sunken text-text-muted'

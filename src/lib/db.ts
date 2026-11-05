@@ -219,6 +219,8 @@ export interface ProblemRow {
   ownerId: string;
   techniqueId: string;
   label: string | null;
+  /** The instructor's chosen answer. Never send this to a participant. */
+  answer: string | null;
   disclose: boolean;
   solvedAt: string | null;
   solvedBy: string | null;
@@ -232,6 +234,7 @@ function toProblem(r: Record<string, unknown>): ProblemRow {
     ownerId: String(r.owner_id),
     techniqueId: String(r.technique_id),
     label: r.label === null ? null : String(r.label),
+    answer: r.answer === null || r.answer === undefined ? null : String(r.answer),
     disclose: Boolean(r.disclose),
     solvedAt: r.solved_at ? new Date(r.solved_at as string).toISOString() : null,
     solvedBy: r.solved_by === null ? null : String(r.solved_by),
@@ -243,7 +246,7 @@ function toProblem(r: Record<string, unknown>): ProblemRow {
 export async function problemRow(code: string): Promise<ProblemRow | null> {
   if (!hasDb()) return null;
   const rows = (await db()`
-    SELECT code, owner_id, technique_id, label, disclose, solved_at, solved_by, attempts, created_at
+    SELECT code, owner_id, technique_id, label, answer, disclose, solved_at, solved_by, attempts, created_at
     FROM problems WHERE code = ${code} LIMIT 1
   `) as Record<string, unknown>[];
   return rows.length ? toProblem(rows[0]) : null;
@@ -255,13 +258,14 @@ export async function createProblem(
   techniqueId: string,
   disclose: boolean,
   label: string | null,
+  answer: string | null = null,
 ): Promise<ProblemRow | null> {
   if (!hasDb()) return null;
   await db()`
-    INSERT INTO problems (code, owner_id, technique_id, label, disclose)
-    VALUES (${code}, ${ownerId}, ${techniqueId}, ${label}, ${disclose})
+    INSERT INTO problems (code, owner_id, technique_id, label, disclose, answer)
+    VALUES (${code}, ${ownerId}, ${techniqueId}, ${label}, ${disclose}, ${answer})
     ON CONFLICT (code) DO UPDATE
-      SET label = EXCLUDED.label
+      SET label = EXCLUDED.label, answer = EXCLUDED.answer
       WHERE problems.owner_id = ${ownerId}
   `;
   return problemRow(code);
@@ -302,7 +306,7 @@ export async function recordProblemAttempt(
 export async function ownedProblems(ownerId: string): Promise<ProblemRow[]> {
   if (!hasDb()) return [];
   const rows = (await db()`
-    SELECT code, owner_id, technique_id, label, disclose, solved_at, solved_by, attempts, created_at
+    SELECT code, owner_id, technique_id, label, answer, disclose, solved_at, solved_by, attempts, created_at
     FROM problems WHERE owner_id = ${ownerId}
     ORDER BY created_at DESC LIMIT 200
   `) as Record<string, unknown>[];

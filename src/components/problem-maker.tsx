@@ -19,6 +19,7 @@ interface Made {
   ciphertext: string;
   prompt: string;
   keyFields: { label: string; disclosed: boolean; value?: string }[];
+  answer: string;
 }
 
 /**
@@ -46,6 +47,7 @@ export function ProblemMaker({
   const [techniqueId, setTechniqueId] = useState('caesar');
   const [disclose, setDisclose] = useState(true);
   const [label, setLabel] = useState('');
+  const [answer, setAnswer] = useState('');
   const [made, setMade] = useState<Made | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -60,7 +62,7 @@ export function ProblemMaker({
       const res = await fetch('/api/problem/create', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ techniqueId, disclose, label: label.trim() || null }),
+        body: JSON.stringify({ techniqueId, disclose, label: label.trim() || null, answer: answer.trim() }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error ?? 'That did not work.');
@@ -70,6 +72,7 @@ export function ProblemMaker({
         ciphertext: data.preview.ciphertext,
         prompt: data.preview.prompt,
         keyFields: data.preview.keyFields,
+        answer: data.answer,
       });
     } catch (e) {
       setError(errorText((e as Error).message, locale));
@@ -116,11 +119,31 @@ export function ProblemMaker({
       </h2>
       <p className="mt-1 text-xs leading-relaxed text-text-muted">
         {id
-          ? 'Metode yang Anda pilih ditulis ke dalam kodenya. Soal ini tidak bisa berisi metode lain, dan itu bisa diperiksa siapa pun yang memegang kodenya.'
-          : 'The method you pick is written into the code. This problem cannot contain another one, and anybody holding the code can check that.'}
+          ? 'Tulis jawabannya, pilih metodenya, lalu bagikan QR-nya. Mahasiswa melihat kata itu dalam bentuk tersandi dan harus mengetikkan jawaban yang Anda tulis.'
+          : 'Write the answer, pick the method, then share the QR. Students see the word enciphered and have to type back the answer you wrote.'}
       </p>
 
-      <div className="mt-5 grid gap-4 sm:grid-cols-2">
+      <div className="mt-5">
+        <label htmlFor="answer" className="text-[0.6875rem] font-medium uppercase tracking-[0.14em] text-text-faint">
+          {id ? 'Jawaban soal' : 'The answer'}
+        </label>
+        <input
+          id="answer"
+          value={answer}
+          onChange={(e) => { setAnswer(e.target.value); setMade(null); }}
+          placeholder={id ? 'Misalnya: TES' : 'For example: TES'}
+          maxLength={200}
+          autoComplete="off"
+          className="mt-1.5 w-full rounded-lg border border-border-subtle bg-bg-sunken px-3 py-2 text-sm uppercase outline-none transition-colors placeholder:normal-case focus:border-accent"
+        />
+        <p className="mt-1.5 text-xs leading-relaxed text-text-faint">
+          {id
+            ? 'Huruf dan spasi saja. Kalau dikosongkan, sistem memilih pesan acak.'
+            : 'Letters and spaces only. Leave it blank and a random message is chosen.'}
+        </p>
+      </div>
+
+      <div className="mt-4 grid gap-4 sm:grid-cols-2">
         <div>
           <label htmlFor="tech" className="text-[0.6875rem] font-medium uppercase tracking-[0.14em] text-text-faint">
             {id ? 'Metode' : 'Method'}
@@ -141,7 +164,7 @@ export function ProblemMaker({
 
         <div>
           <label htmlFor="lbl" className="text-[0.6875rem] font-medium uppercase tracking-[0.14em] text-text-faint">
-            {id ? 'Catatan untuk Anda' : 'A note for yourself'}
+            {id ? 'Catatan untuk Anda (tidak terlihat mahasiswa)' : 'A note for yourself (students do not see it)'}
           </label>
           <input
             id="lbl"
@@ -238,6 +261,10 @@ export function ProblemMaker({
             <p className="cipher-text mt-2 break-words text-sm leading-relaxed text-cipher">
               {made.ciphertext}
             </p>
+            <div className="mt-3 flex justify-between gap-2 border-t border-border-subtle pt-3 text-xs">
+              <span className="text-text-faint">{id ? 'Jawaban yang benar (hanya Anda yang melihat ini)' : 'Correct answer (only you see this)'}</span>
+              <span id="made-answer" className="font-mono font-medium break-all">{made.answer}</span>
+            </div>
             {made.keyFields.length > 0 && (
               <dl className="mt-3 space-y-1 border-t border-border-subtle pt-3 text-xs">
                 {made.keyFields.map((f) => (
