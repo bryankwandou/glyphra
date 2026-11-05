@@ -79,7 +79,7 @@ with sync_playwright() as p:
     chk("the ciphertext deciphers to TES with the shown key", caesar_back(cipher, shift), "TES")
 
     link = pg.locator("p.font-mono", has_text="/p/").inner_text().strip()
-    qr_box = pg.locator("svg[aria-label^='QR']").first
+    qr_box = pg.locator("svg[aria-label='Kode QR']").first
     print(f"        link {link}")
     chk("the QR on screen opens exactly that link", read_qr(qr_box.screenshot()), link)
 
@@ -92,6 +92,7 @@ with sync_playwright() as p:
 
     chk("the student sees the same ciphertext", sp.inner_text(".cipher-text").strip(), cipher)
     chk("the page names one method", "Caesar" in sp.inner_text("h1"), True)
+    chk("the method's family is in Indonesian", "substitution" in sp.inner_text("body"), False)
     chk("the length matches the word", "sepanjang 3 huruf" in sp.inner_text("body"), True)
     html = sp.content()
     chk("the answer is nowhere in the page source", '"TES"' in html or ">TES<" in html, False)

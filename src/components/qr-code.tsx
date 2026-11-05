@@ -57,7 +57,7 @@ export function QrCode({ value, size = 168 }: { value: string; size?: number }) 
       height={size}
       viewBox={`0 0 ${total} ${total}`}
       role="img"
-      aria-label="QR code for this quiz link"
+      aria-label="Kode QR"
       shapeRendering="crispEdges"
       className="rounded-lg"
     >

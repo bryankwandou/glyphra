@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { useLocale } from '@/lib/i18n/client';
+import { useLocale, useT } from '@/lib/i18n/client';
 import { eraText } from '@/lib/i18n/eras';
 import type { BuiltProblem } from '@/lib/problem';
 
@@ -21,6 +21,7 @@ export function ProblemRunner({
   problem: BuiltProblem;
   tracked: boolean;
 }) {
+  const dict = useT();
   const id = useLocale() === 'id';
   const locale = useLocale();
 
@@ -145,7 +146,7 @@ export function ProblemRunner({
         <dl className="mt-4 flex flex-wrap gap-x-6 gap-y-2 text-sm">
           <div>
             <dt className="text-xs text-text-faint">{id ? 'Keluarga' : 'Family'}</dt>
-            <dd>{problem.family}</dd>
+            <dd>{dict.bench.families[problem.family] ?? problem.family}</dd>
           </div>
           <div>
             <dt className="text-xs text-text-faint">{id ? 'Kesulitan' : 'Difficulty'}</dt>
