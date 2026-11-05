@@ -276,6 +276,20 @@ with sync_playwright() as pw:
     chk("the longer problem actually arrived", arrived, True)
     p.wait_for_timeout(800)
 
+    # The method is drawn at random, and binary or Morse leaves no letters to
+    # count, so the panel is rightly absent. Draw again until there is something
+    # for it to work on; otherwise this fails about one run in three for nothing.
+    for _ in range(8):
+        shown = cipher.inner_text() if cipher.count() else ""
+        if not arrived or len(re.sub(r"[^A-Za-z]", "", shown)) >= 12 and not re.search(r"\d", shown):
+            break
+        p.get_by_role("button", name=re.compile("Soal baru|Buatkan|New problem", re.I)).first.click()
+        p.wait_for_function(
+            "(b) => { const e = document.querySelector('.cipher-text');"
+            " return !!e && e.textContent.trim() !== '' && e.textContent !== b; }",
+            arg=shown, timeout=90_000)
+        p.wait_for_timeout(800)
+
     panel = p.get_by_role("button", name=re.compile("^(Buka|Open)$", re.I)).first
     if not arrived:
         print("            the panel checks are skipped: they would read the old,"
